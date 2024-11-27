@@ -81,7 +81,7 @@ class DocsEvaluatorTest extends ScalaCheckSuite {
 
   test("example 'missing' result is correct") {
     val label = "label"
-    val expected = s"🔴 $label - not found"
+    val expected = s"🔴 $label - Not found"
     assert(clue(formatDocsQuality(label, DocsQuality.Missing)) == expected)
   }
 

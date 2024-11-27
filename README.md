@@ -99,6 +99,8 @@ We then pass this data to AWS Bedrock.
 
 Keys required to authenticate this application are kept out of the repository. The GitHub API key is provided via an environment variable, and the AWS credentials are provided using a named profile.
 
+The provided GitHub Access token determines what GitHub data is accessible to the tool and the AWS profile that's used determines whether the program can call AWS Bedrock.
+
 ### Observability
 
 Detailed runtime logs are saved in the `logs` directory of this project.
@@ -109,6 +111,6 @@ No monitoring strategy exists for this locally executed hack day project.
 
 Transparent dangling carrots reads documentation data from GitHub, and passes it to an LLM in AWS Bedrock for evaluation. The results of this evaluation are then printed to the console.
 
-The provided GitHub Access token determines what GitHub data is accessible to the tool and the AWS profile that's used determines whether the program can call AWS Bedrock.
+Detailed runtime logs are written to the `logs` directory. These logs contain the contents of the documentation files that were fetched from GitHub. The documentation files should not contain any sensitive information, and in many cases are publicly accessible. However, these logs are excluded from the repository via the .gitignore, and engineers should be cautious not to accidentally share the log file.
 
-No data is persisted so there are no concerns around data retention, deletion or backup.
+Since this program has no data of its own, there is no need to consider data backups.
