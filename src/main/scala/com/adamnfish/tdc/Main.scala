@@ -13,13 +13,14 @@ import fs2.io.net.Network
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import software.amazon.awssdk.regions.Region
+import org.typelevel.log4cats._
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 
 object Main extends IOCaseApp[CliArgs] {
   // CLI app's main method
   override def run(args: CliArgs, otherArgs: RemainingArgs): IO[ExitCode] = {
     appR(args.profile, args.region).use { appComponents =>
       for {
-        given Logger[IO] <- Slf4jLogger.create[IO]
         docs <- appComponents.vcsInformation.repoDocs(
           args.owner,
           args.repo,
@@ -44,6 +45,7 @@ object Main extends IOCaseApp[CliArgs] {
     val region = Region.of(regionStr)
     for {
       apiKey <- Resource.eval(requiredEnvVar("GITHUB_API_KEY"))
+      given LoggerFactory[IO] = Slf4jFactory.create[IO]
       githubApis <- Github.create[IO](apiKey)
       docsEvaluator <- AwsBedrockDocsEvaluator.create[IO](profile, region)
     } yield AppComponents(githubApis, docsEvaluator)

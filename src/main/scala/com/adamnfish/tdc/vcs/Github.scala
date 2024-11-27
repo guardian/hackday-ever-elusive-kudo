@@ -10,12 +10,14 @@ import github4s.GithubClient
 import github4s.algebras.GithubAPIs
 import github4s.domain.{BlobContent, TreeDataResult}
 import org.http4s.ember.client.EmberClientBuilder
+import org.typelevel.log4cats._
 
 import java.util.Base64
 
-class Github[F[_]: Concurrent: Async: Network: MonadThrow](
+class Github[F[_]: Concurrent: Async: Network: MonadThrow: LoggerFactory](
     githubAPIs: GithubAPIs[F]
 ) extends VcsInformation[F] {
+  private val logger = LoggerFactory[F].getLogger
 
   override def repoDocs(
       owner: String,
@@ -25,12 +27,19 @@ class Github[F[_]: Concurrent: Async: Network: MonadThrow](
     for {
       treeItems <- lookupRepoTree(owner, repositoryName, vcsRef)
       docsTreeItems = treeItems.filter(Github.isDoc)
+      _ <- logger.debug(s"""${docsTreeItems.length} docs items""")
       docsBlobsAndPaths <- Async[F].parTraverseN(10)(docsTreeItems) { tdr =>
         // lookup each docs blob by sha, using the GitHub API
         // we want to preserve the path, so we attach the path to the contents
         lookupBlob(owner, repositoryName, tdr.sha).map((tdr.path, _))
       }
       docsAndPaths <- docsBlobsAndPaths.traverse(Github.blobToDocsFile.tupled)
+      _ <- logger.debug(
+        s"""Docs found
+           |${docsAndPaths
+            .map(docsFile => s"${docsFile.path}\n${docsFile.content}")
+            .mkString("\n-----------\n")}""".stripMargin
+      )
     } yield docsAndPaths
   }
 
@@ -70,7 +79,7 @@ class Github[F[_]: Concurrent: Async: Network: MonadThrow](
   }
 }
 object Github {
-  def create[F[_]: Concurrent: Async: Network: MonadThrow](
+  def create[F[_]: Concurrent: Async: Network: MonadThrow: LoggerFactory](
       apiKey: String
   ): Resource[F, Github[F]] = {
     for {

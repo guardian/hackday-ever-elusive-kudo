@@ -10,6 +10,7 @@ import com.adamnfish.tdc.docs.DocsEvaluator.DocsQuality.MayNeedImprovement
 import com.adamnfish.tdc.docs.DocsEvaluator.*
 import com.adamnfish.tdc.vcs.VcsInformation
 import com.adamnfish.tdc.vcs.VcsInformation.DocsFile
+import org.typelevel.log4cats.LoggerFactory
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 import software.amazon.awssdk.http.apache.ApacheHttpClient
 import software.amazon.awssdk.regions.Region
@@ -18,16 +19,21 @@ import software.amazon.awssdk.services.bedrockruntime.model.*
 
 import scala.jdk.CollectionConverters.*
 
-class AwsBedrockDocsEvaluator[F[_]: Sync: MonadThrow: Console](
+class AwsBedrockDocsEvaluator[F[_]: Sync: MonadThrow: LoggerFactory](
     bedrockRuntimeClient: BedrockRuntimeClient
 ) extends DocsEvaluator[F] {
+  private val logger = LoggerFactory.getLogger[F]
 
   override def evaluateDocs(
       allDocs: List[VcsInformation.DocsFile]
   ): F[DocsEvaluation] = {
     val message = AwsBedrockDocsEvaluator.createMessage(allDocs)
     for {
-//      _ <- Console[F].println(s"PROMPT:\n$message\n")
+      _ <- logger.debug(
+        s"""PROMPT:
+           |$message"
+           |""".stripMargin
+      )
       response <- Sync[F].blocking {
         bedrockRuntimeClient.converse {
           ConverseRequest
@@ -47,7 +53,11 @@ class AwsBedrockDocsEvaluator[F[_]: Sync: MonadThrow: Console](
       }
       contentBlocks = response.output.message.content.asScala.toList
       content = contentBlocks.flatMap(cb => Option(cb.text())).mkString("")
-//      _ <- Console[F].println(s"RESPONSE:\n$content\n")
+      _ <- logger.debug(
+        s"""LLM RESPONSE:
+           |$content
+           |""".stripMargin
+      )
       evaluation <- Parser.parseBedrockResponse(content)
     } yield evaluation
   }
@@ -57,7 +67,7 @@ object AwsBedrockDocsEvaluator {
   //  val modelId = "us.anthropic.claude-3-5-sonnet-20241022-v2:0"
   val modelId = "us.anthropic.claude-3-5-haiku-20241022-v1:0"
 
-  def create[F[_]: Sync: Console](
+  def create[F[_]: Sync: LoggerFactory](
       profileName: String,
       region: Region
   ): Resource[F, AwsBedrockDocsEvaluator[F]] = {
@@ -68,6 +78,7 @@ object AwsBedrockDocsEvaluator {
           ApacheHttpClient
             .builder()
             .maxConnections(100)
+            .socketTimeout(java.time.Duration.ofSeconds(240))
             .build()
         }
       } { client =>

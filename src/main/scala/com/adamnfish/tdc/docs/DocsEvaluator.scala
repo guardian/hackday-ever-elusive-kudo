@@ -3,6 +3,7 @@ package com.adamnfish.tdc.docs
 import cats.syntax.all.*
 import com.adamnfish.tdc.docs.DocsEvaluator.DocsEvaluation
 import com.adamnfish.tdc.vcs.VcsInformation
+import scala.Console.*
 
 trait DocsEvaluator[F[_]] {
   def evaluateDocs(allDocs: List[VcsInformation.DocsFile]): F[DocsEvaluation]
@@ -49,7 +50,7 @@ object DocsEvaluator {
       understandingPerformance: DocsQuality,
       understandingSecurity: DocsQuality,
       understandingMonitoring: DocsQuality,
-      understandingLogging: DocsQuality,
+      understandingLogging: DocsQuality
   )
 
   case class DataGovernanceEvaluation(
@@ -68,9 +69,9 @@ object DocsEvaluator {
         case DocsQuality.Good =>
           s"🟢 $label"
         case DocsQuality.MayNeedImprovement(summary) =>
-          s"🟡 $label - $summary"
+          s"🟡 $label - ${CYAN}$summary${RESET}"
         case DocsQuality.Missing =>
-          s"🔴 $label - not found"
+          s"🔴 $label - ${CYAN}not found${RESET}"
 
     def formatDocsEvaluation(
         owner: String,
@@ -79,20 +80,20 @@ object DocsEvaluator {
     ): String =
       // format: off
       s"""Documentation summary for $owner/$repositoryName
-         |  🔑 Key information:
+         |  🔑 ${BOLD}Key information${RESET}:
          |    ${formatDocsQuality("Description", docsEvaluation.basics.description)}
          |    ${formatDocsQuality("Running locally", docsEvaluation.basics.howToRunLocally)}
          |    ${formatDocsQuality("Running in prod", docsEvaluation.basics.howToRunInProd)}
          |    ${formatDocsQuality("Deploying", docsEvaluation.basics.howToDeploy)}
          |    ${formatDocsQuality("Testing", docsEvaluation.basics.howToTest)}
-         |  💻 Software development support:
+         |  💻 ${BOLD}Software development support${RESET}:
          |    ${formatDocsQuality("Contributing", docsEvaluation.contributing.howToContribute)}
          |    ${formatDocsQuality("Reporting issues", docsEvaluation.contributing.howToReportIssues)}
          |    ${formatDocsQuality("Getting help", docsEvaluation.contributing.howToGetHelp)}
-         |  🌏 High-level overview:
+         |  🌏 ${BOLD}High-level overview${RESET}:
          |    ${formatDocsQuality("Architecture", docsEvaluation.architecture.architectureOverview)}
          |    ${formatDocsQuality("Data flow overview", docsEvaluation.architecture.dataFlowOverview)}
-         |  🔧 Detailed technical information:
+         |  🔧 ${BOLD}Detailed technical information${RESET}:
          |    ${formatDocsQuality("Code", docsEvaluation.technicalDetailEvaluation.understandingCode)}
          |    ${formatDocsQuality("Dependencies", docsEvaluation.technicalDetailEvaluation.understandingDependencies)}
          |    ${formatDocsQuality("Tests", docsEvaluation.technicalDetailEvaluation.understandingTests)}
@@ -100,7 +101,7 @@ object DocsEvaluator {
          |    ${formatDocsQuality("Security", docsEvaluation.technicalDetailEvaluation.understandingSecurity)}
          |    ${formatDocsQuality("Monitoring", docsEvaluation.technicalDetailEvaluation.understandingMonitoring)}
          |    ${formatDocsQuality("Logging", docsEvaluation.technicalDetailEvaluation.understandingLogging)}
-         |  🪣 Detailed data information:
+         |  🪣 ${BOLD}Detailed data information${RESET}:
          |    ${formatDocsQuality("Data storage", docsEvaluation.dataGovernanceEvaluation.understandingDataStorage)}
          |    ${formatDocsQuality("Data processing", docsEvaluation.dataGovernanceEvaluation.understandingDataProcessing)}
          |    ${formatDocsQuality("Data transfer", docsEvaluation.dataGovernanceEvaluation.understandingDataTransfer)}
