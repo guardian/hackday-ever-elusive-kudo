@@ -16,17 +16,13 @@ It requires a GitHub API token and an AWS profile with access to AWS Bedrock. Th
 
 The program takes a few parameters, some of which have default values:
 
--------------------------------------------------------------------------------------------------------------------
+| Argument  | Description                                                                                         |
+|-----------|-----------------------------------------------------------------------------------------------------|
 | --owner   | The GitHub organisation or user that owns the repository (e.g. `guardian` or `adamnfish`)           |
--------------------------------------------------------------------------------------------------------------------
 | --repo    | The GitHub repository name, taken from its URL (e.g. `transparent-dangling-carrots`)                |
--------------------------------------------------------------------------------------------------------------------
 | --profile | The AWS profile name that contains valid credentials for calling AWS Bedrock                        |
--------------------------------------------------------------------------------------------------------------------
 | --git-ref | **Optional**: A reference to the version of the repository to check (default: `main`)               |
--------------------------------------------------------------------------------------------------------------------
 | --region  | **Optional**: The AWS region that should be used to call the AWS Bedrock API (default: `us-east-1`) |
--------------------------------------------------------------------------------------------------------------------
 
 ### Production
 
