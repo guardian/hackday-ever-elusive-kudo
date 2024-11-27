@@ -86,11 +86,16 @@ object Github {
     VcsInformation.isDocPath(treeDataResult.path)
   }
 
-  def blobToDocsFile[F[_] : MonadThrow](path: String, blobContent: BlobContent): F[DocsFile] = {
+  def blobToDocsFile[F[_]: MonadThrow](
+      path: String,
+      blobContent: BlobContent
+  ): F[DocsFile] = {
     (blobContent.encoding match {
       case Some("base64") =>
         MonadThrow[F].fromOption(
-          blobContent.content.map(c => new String(Base64.getMimeDecoder.decode(c))),
+          blobContent.content.map(c =>
+            new String(Base64.getMimeDecoder.decode(c))
+          ),
           new RuntimeException(s"Empty file at path `$path`")
         )
       case Some("utf-8") =>
@@ -100,7 +105,9 @@ object Github {
         )
       case encoding =>
         MonadThrow[F].raiseError(
-          new RuntimeException(s"Unsupported $encoding for file at path `$path` (gitsha:${blobContent.sha})")
+          new RuntimeException(
+            s"Unsupported $encoding for file at path `$path` (gitsha:${blobContent.sha})"
+          )
         )
     }).map(DocsFile(path, _))
   }

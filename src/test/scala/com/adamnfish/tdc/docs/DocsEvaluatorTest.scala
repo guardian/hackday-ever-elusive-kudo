@@ -5,8 +5,14 @@ import org.scalacheck.Gen
 import org.scalacheck.Prop.*
 import com.adamnfish.tdc.docs.DocsEvaluator.DocsQuality
 import com.adamnfish.tdc.docs.DocsEvaluator.DocsEvaluation
-import com.adamnfish.tdc.docs.DocsEvaluator.DocsEvaluation.{formatDocsEvaluation, formatDocsQuality}
-import com.adamnfish.tdc.docs.DocsEvaluator.DocsQuality.{MayNeedImprovement, Missing}
+import com.adamnfish.tdc.docs.DocsEvaluator.DocsEvaluation.{
+  formatDocsEvaluation,
+  formatDocsQuality
+}
+import com.adamnfish.tdc.docs.DocsEvaluator.DocsQuality.{
+  MayNeedImprovement,
+  Missing
+}
 
 class DocsEvaluatorTest extends ScalaCheckSuite {
   test("example 'good' result is correct") {

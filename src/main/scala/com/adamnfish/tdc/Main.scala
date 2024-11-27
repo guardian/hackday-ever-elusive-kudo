@@ -38,9 +38,9 @@ object Main extends IOCaseApp[CliArgs] {
 
   // sets up the services required by the application
   def appR(
-            profile: String,
-            regionStr: String
-          ): Resource[IO, AppComponents[IO]] =
+      profile: String,
+      regionStr: String
+  ): Resource[IO, AppComponents[IO]] =
     val region = Region.of(regionStr)
     for {
       apiKey <- Resource.eval(requiredEnvVar("GITHUB_API_KEY"))
@@ -49,9 +49,9 @@ object Main extends IOCaseApp[CliArgs] {
     } yield AppComponents(githubApis, docsEvaluator)
 
   case class AppComponents[F[_]](
-                                  vcsInformation: VcsInformation[F],
-                                  docsEvaluator: DocsEvaluator[F]
-                                )
+      vcsInformation: VcsInformation[F],
+      docsEvaluator: DocsEvaluator[F]
+  )
 
   def requiredEnvVar(name: String): IO[String] = {
     for {
@@ -66,14 +66,14 @@ object Main extends IOCaseApp[CliArgs] {
 @AppName("Transparent dangling carrots")
 @ProgName("tdc")
 case class CliArgs(
-                    @HelpMessage("Repository owner")
-                    owner: String,
-                    @HelpMessage("Repository name")
-                    repo: String,
-                    @HelpMessage("AWS profile name")
-                    profile: String,
-                    @HelpMessage("Git reference (branch, tag, or sha, defaults to 'main')")
-                    gitRef: String = "main",
-                    @HelpMessage("AWS region (defaults to 'us-east-1' for Bedrock usage)")
-                    region: String = "us-east-1"
-                  )
+    @HelpMessage("Repository owner")
+    owner: String,
+    @HelpMessage("Repository name")
+    repo: String,
+    @HelpMessage("AWS profile name")
+    profile: String,
+    @HelpMessage("Git reference (branch, tag, or sha, defaults to 'main')")
+    gitRef: String = "main",
+    @HelpMessage("AWS region (defaults to 'us-east-1' for Bedrock usage)")
+    region: String = "us-east-1"
+)
