@@ -129,57 +129,115 @@ object AwsBedrockDocsEvaluator {
            |</documents>
            |
            |<instructions>
-           |We'll be evaluating the documentation against the following categories, these are grouped into named sections that start with a comment //
+           |We'll be evaluating the documentation against the following categories.
            |
-           |// documentation basics
+           |# Documentation basics
+           |
            |- description
+           |    Does the documentation give a brief overview of what the codebase does, and why?
            |- howToRunLocally
+           |    We would like to see a comprehensive description of how to run the system locally.
            |- howToRunInProd
+           |    We'd like an overview of the real production environment.
            |- howToDeploy
+           |    We generally assume deployments use our CI/CD platform "riff raff", but does this repository automatically deploy Pull Requests
+           |    If any other information is provided, is it enough to explain the process?
            |- howToTest
-           |// Software development lifecycle help
+           |    How would an engineer go about running the application's tests?
+           |    Are any unusual factors properly explained?
+           |
+           |# Contributing
+           |
+           |This section is to help an engineer navigate the process of making changes, and getting support from others while doing so.
+           |
            |- howToContribute
+           |    TODO: this should probably go (it lives in CONTRIBUTING.md)
            |- howToReportIssues
+           |    If a team name is provided, this is enough. Otherwise we'd like to see something GitHub issues or Trello as a way to make the maintainers aware of problems.
            |- howToGetHelp
-           |// high-level overviews
+           |    If a team name is provided, this is enough. If not, are there instructions on how someone contributing to the codebase can get technical support?
+           |
+           |# High-level overviews
+           |
+           |These overviews provide a information on this system and its place in the business.
+           |
            |- architectureOverview
+           |    We expect to have a summary of this service's components and how they interact with other systems.
+           |    Please also check for any architecture diagrams embedded in the documentation.
            |- dataFlowOverview
-           |// detailed technical information
+           |    A description of where the data powering this system comes from, how it is processed in this system, and where any outputs go.
+           |
+           |# Detailed technical information
+           |
+           |This information exists to help an engineer that needs to do software development on the project, either to add a feature or maintain what is there.
+           |
            |- understandingCode
+           |    Does the README give an overview of the code's structure, in a way that would help an engineer arriving fresh to the repository?
            |- understandingDependencies
+           |    Which software dependency system(s) does the repo use, and how are dependencies kept up to date?
            |- understandingTests
+           |    Expanding on the above point about how to run the tests, is there any technical detail on how the tests are written?
            |- understandingPerformance
+           |    Is this application performance-critical, and are there any specific performance issues to keep in mind when working on this repository?
            |- understandingSecurity
+           |    What security considerations does this repository have? This might include IAM management, handling API keys, properly securing data, or things to think about in the code itself.
            |- understandingMonitoring
+           |    Can an engineer get a sense of how the application is performing in production?
            |- understandingLogging
-           |// more detailed data information
+           |    Diving into a bit more detail on the above monitoring point, where can any logs for this system be found?
+           |
+           |# Data governance
+           |
+           |the following sections relate to the data this system handles in its operation. If the system does not handle any data, then there's no need for the documentation to go into more detail here.
+           |
            |- understandingDataStorage
+           |    Is it clear where and how this system stores data?
            |- understandingDataProcessing
+           |    Does the documentation explain how the system processes any data inputs?
            |- understandingDataTransfer
+           |    Expanding on the data flow overview above, is there more detailed information on any external systems where data gets sent?
            |- understandingDataAccess
+           |    Are any access controls in place on data that this system stores?
            |- understandingDataRetention
+           |    Has any consideration been given to how long data is kept in this system?
            |- understandingDataDeletion
+           |    If data is not kept forever, how is it deleted?
            |- understandingDataBackup
+           |    How do we ensure the integrity of any important system data?
+           |
            |
            |Please read the provided documentation and tell us whether it addresses each category by classifying it in one of three ways:
            |- Good
            |- May need improvement | <why>
            |- Missing
            |
-           |A classification of "Good" implies that the provided documentation clearly addresses this section.
+           |A classification of "Good" implies that the provided documentation clearly addresses this section, or that it does not apply.
            |In the case of "May need improvement", the documentation touches on this point but lacks clarity or completeness. Please provide a one sentence summary of how this could be improved.
            |Finally, if the documentation doesn't address this category at all, we'll classify it as "Missing".
            |
            |The repository's documentation will be provided in xml tags for you, with a <documentation> tag wrapping all the files, and a <file> tag for each of the individual documentation files. The file tag contains an attribute for that file's path in the repository.
            |
-           |Please use <thinking> tags to consider each point in turn, before writing your final output.
+           |Please use <thinking> tags to consider each point in turn in your own words before writing your final output. You should at least give a summary of how the documentation meets each of the above sections, here.
            |
-           |Your evaluation needs to appear in a specific format, which should appear within <evaluation> tags after you are done thinking. Please do not elaborate within the classification, stick to precisely the example format.
+           |Your actual evaluation needs to appear in a specific format, which should appear within <evaluation> tags after you are done thinking. Please do not elaborate within the classification, stick to precisely the example format.
            |
            |</instructions>
            |<example>
            |<thinking>
-           |Your summary for each point can go here...
+           |# Documentation basics
+           |...
+           |
+           |# Contributing
+           |...
+           |
+           |# High-level overviews
+           |...
+           |
+           |# Detailed technical information
+           |...
+           |
+           |# Data governance
+           |...
            |</thinking>
            |<evaluation>
            |description: Good
