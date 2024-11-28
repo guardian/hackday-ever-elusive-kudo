@@ -1,15 +1,15 @@
-package com.adamnfish.tdc.docs
+package com.adamnfish.eek.docs
 
 import cats.MonadThrow
 import cats.effect.Resource
 import cats.effect.std.Console
 import cats.effect.kernel.Sync
 import cats.syntax.all.*
-import com.adamnfish.tdc.docs.AwsBedrockDocsEvaluator.Parser
-import com.adamnfish.tdc.docs.DocsEvaluator.DocsQuality.MayNeedImprovement
-import com.adamnfish.tdc.docs.DocsEvaluator.*
-import com.adamnfish.tdc.vcs.VcsInformation
-import com.adamnfish.tdc.vcs.VcsInformation.DocsFile
+import com.adamnfish.eek.docs.AwsBedrockDocsEvaluator.Parser
+import com.adamnfish.eek.docs.DocsEvaluator.DocsQuality.MayNeedImprovement
+import com.adamnfish.eek.docs.DocsEvaluator.*
+import com.adamnfish.eek.vcs.VcsInformation
+import com.adamnfish.eek.vcs.VcsInformation.DocsFile
 import org.typelevel.log4cats.LoggerFactory
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 import software.amazon.awssdk.http.apache.ApacheHttpClient

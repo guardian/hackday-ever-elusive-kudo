@@ -1,9 +1,9 @@
-package com.adamnfish.tdc.integration
+package com.adamnfish.eek.integration
 
 import cats.effect.{IO, Resource}
-import com.adamnfish.tdc.docs.AwsBedrockDocsEvaluator
-import com.adamnfish.tdc.docs.DocsEvaluator.DocsEvaluation.formatDocsEvaluation
-import com.adamnfish.tdc.vcs.VcsInformation.DocsFile
+import com.adamnfish.eek.docs.AwsBedrockDocsEvaluator
+import com.adamnfish.eek.docs.DocsEvaluator.DocsEvaluation.formatDocsEvaluation
+import com.adamnfish.eek.vcs.VcsInformation.DocsFile
 import munit.CatsEffectSuite
 import org.typelevel.log4cats.LoggerFactory
 import org.typelevel.log4cats.slf4j.Slf4jFactory

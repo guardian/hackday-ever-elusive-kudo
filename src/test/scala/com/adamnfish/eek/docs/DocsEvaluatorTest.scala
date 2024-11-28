@@ -1,18 +1,20 @@
-package com.adamnfish.tdc.docs
+package com.adamnfish.eek.docs
 
 import munit.ScalaCheckSuite
 import org.scalacheck.Gen
 import org.scalacheck.Prop.*
-import com.adamnfish.tdc.docs.DocsEvaluator.DocsQuality
-import com.adamnfish.tdc.docs.DocsEvaluator.DocsEvaluation
-import com.adamnfish.tdc.docs.DocsEvaluator.DocsEvaluation.{
+import com.adamnfish.eek.docs.DocsEvaluator.DocsQuality
+import com.adamnfish.eek.docs.DocsEvaluator.DocsEvaluation
+import com.adamnfish.eek.docs.DocsEvaluator.DocsEvaluation.{
   formatDocsEvaluation,
   formatDocsQuality
 }
-import com.adamnfish.tdc.docs.DocsEvaluator.DocsQuality.{
+import com.adamnfish.eek.docs.DocsEvaluator.DocsQuality.{
   MayNeedImprovement,
   Missing
 }
+
+import scala.Console.{CYAN, RESET}
 
 class DocsEvaluatorTest extends ScalaCheckSuite {
   test("example 'good' result is correct") {
@@ -34,7 +36,7 @@ class DocsEvaluatorTest extends ScalaCheckSuite {
   test("example 'may need improvement' result is correct") {
     val label = "label"
     val summary = "summary"
-    val expected = s"🟡 $label - $summary"
+    val expected = s"🟡 $label - ${CYAN}$summary${RESET}"
     assert(
       clue(
         formatDocsQuality(
@@ -81,7 +83,7 @@ class DocsEvaluatorTest extends ScalaCheckSuite {
 
   test("example 'missing' result is correct") {
     val label = "label"
-    val expected = s"🔴 $label - Not found"
+    val expected = s"🔴 $label - ${CYAN}Not found${RESET}"
     assert(clue(formatDocsQuality(label, DocsQuality.Missing)) == expected)
   }
 

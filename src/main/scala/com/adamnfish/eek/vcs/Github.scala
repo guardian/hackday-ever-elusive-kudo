@@ -1,10 +1,10 @@
-package com.adamnfish.tdc.vcs
+package com.adamnfish.eek.vcs
 
 import cats.MonadThrow
 import cats.effect.kernel.Async
 import cats.effect.{Concurrent, Resource}
 import cats.syntax.all.*
-import com.adamnfish.tdc.vcs.VcsInformation.DocsFile
+import com.adamnfish.eek.vcs.VcsInformation.DocsFile
 import fs2.io.net.Network
 import github4s.GithubClient
 import github4s.algebras.GithubAPIs

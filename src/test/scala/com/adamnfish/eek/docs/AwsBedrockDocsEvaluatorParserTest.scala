@@ -1,10 +1,10 @@
-package com.adamnfish.tdc.docs
+package com.adamnfish.eek.docs
 
 import scala.util.{Try, Success}
 import cats.*
 import cats.data.*
 import cats.syntax.all.*
-import com.adamnfish.tdc.docs.DocsEvaluator.*
+import com.adamnfish.eek.docs.DocsEvaluator.*
 import munit.FunSuite
 
 class AwsBedrockDocsEvaluatorParserTest extends FunSuite {

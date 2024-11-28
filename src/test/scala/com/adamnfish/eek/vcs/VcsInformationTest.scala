@@ -1,4 +1,4 @@
-package com.adamnfish.tdc.vcs
+package com.adamnfish.eek.vcs
 
 import munit.ScalaCheckSuite
 import org.scalacheck.Gen

@@ -15,7 +15,7 @@ val http4sVersion = "0.23.29"
 
 lazy val root = (project in file("."))
   .settings(
-    name := "tdc",
+    name := "eek",
     libraryDependencies ++= Seq(
       "org.typelevel" %% "cats-effect" % catsEffectVersion,
       "org.typelevel" %% "cats-effect-kernel" % catsEffectVersion,

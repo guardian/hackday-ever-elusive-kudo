@@ -1,14 +1,14 @@
-package com.adamnfish.tdc
+package com.adamnfish.eek
 
 import caseapp.catseffect.IOCaseApp
 import caseapp.*
 import cats.effect.{ExitCode, IO, Resource}
 import cats.syntax.all.*
-import com.adamnfish.tdc.docs.AwsBedrockDocsEvaluator
-import com.adamnfish.tdc.docs.DocsEvaluator
-import com.adamnfish.tdc.docs.DocsEvaluator.DocsEvaluation
-import com.adamnfish.tdc.docs.DocsEvaluator.DocsEvaluation.formatDocsEvaluation
-import com.adamnfish.tdc.vcs.{Github, VcsInformation}
+import com.adamnfish.eek.docs.AwsBedrockDocsEvaluator
+import com.adamnfish.eek.docs.DocsEvaluator
+import com.adamnfish.eek.docs.DocsEvaluator.DocsEvaluation
+import com.adamnfish.eek.docs.DocsEvaluator.DocsEvaluation.formatDocsEvaluation
+import com.adamnfish.eek.vcs.{Github, VcsInformation}
 import fs2.io.net.Network
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
@@ -65,8 +65,8 @@ object Main extends IOCaseApp[CliArgs] {
   }
 }
 
-@AppName("Transparent dangling carrots")
-@ProgName("tdc")
+@AppName("Ever-elusive kudo")
+@ProgName("eek")
 case class CliArgs(
     @HelpMessage("Repository owner")
     owner: String,

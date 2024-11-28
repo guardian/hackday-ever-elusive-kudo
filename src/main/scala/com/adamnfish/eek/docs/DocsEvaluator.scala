@@ -1,8 +1,8 @@
-package com.adamnfish.tdc.docs
+package com.adamnfish.eek.docs
 
 import cats.syntax.all.*
-import com.adamnfish.tdc.docs.DocsEvaluator.DocsEvaluation
-import com.adamnfish.tdc.vcs.VcsInformation
+import com.adamnfish.eek.docs.DocsEvaluator.DocsEvaluation
+import com.adamnfish.eek.vcs.VcsInformation
 import scala.Console.*
 
 trait DocsEvaluator[F[_]] {
@@ -71,7 +71,7 @@ object DocsEvaluator {
         case DocsQuality.MayNeedImprovement(summary) =>
           s"🟡 $label - ${CYAN}$summary${RESET}"
         case DocsQuality.Missing =>
-          s"🔴 $label - ${CYAN}not found${RESET}"
+          s"🔴 $label - ${CYAN}Not found${RESET}"
 
     def formatDocsEvaluation(
         owner: String,

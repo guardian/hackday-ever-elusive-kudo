@@ -1,8 +1,8 @@
-package com.adamnfish.tdc.vcs
+package com.adamnfish.eek.vcs
 
 import cats.*
 import cats.syntax.all.*
-import com.adamnfish.tdc.vcs.VcsInformation.DocsFile
+import com.adamnfish.eek.vcs.VcsInformation.DocsFile
 
 trait VcsInformation[F[_]] {
   def repoDocs(
@@ -25,13 +25,13 @@ object VcsInformation {
       ".adoc"
     )
     val filePredicates = for {
-      file <- List("README", "FAQ")
+      file <- List("readme", "faq")
       extension <- extensions
       predicates <- List(
-        (path: String) => path == file,
-        (path: String) => path == s"$file$extension",
+        (path: String) => path.toLowerCase == file,
+        (path: String) => path.toLowerCase == s"$file$extension",
         // TODO: does treeDataItem.path include the root?
-        (path: String) => path.endsWith(s"/$file$extension")
+        (path: String) => path.toLowerCase.endsWith(s"/$file$extension")
       )
     } yield predicates
     val docsDirPredicates =
