@@ -15,6 +15,7 @@ import org.typelevel.log4cats.slf4j.Slf4jLogger
 import software.amazon.awssdk.regions.Region
 import org.typelevel.log4cats._
 import org.typelevel.log4cats.slf4j.Slf4jFactory
+import scala.Console.*
 
 object Main extends IOCaseApp[CliArgs] {
   // CLI app's main method
@@ -27,9 +28,14 @@ object Main extends IOCaseApp[CliArgs] {
           args.gitRef
         )
         < <- IO.println(
-          s"Evaluating the following docs files: ${docs.map(_.path).mkString(",")}"
+          s"Evaluating the following docs files: ${docs.map(df => s"${CYAN}${df.path}${RESET}").mkString(", ")}"
         )
-        docsEvaluation <- appComponents.docsEvaluator.evaluateDocs(docs)
+        (docsEvaluation, thoughts) <- appComponents.docsEvaluator.evaluateDocs(
+          docs
+        )
+        _ <-
+          if (args.verbose) IO.println(DocsEvaluation.formatThoughts(thoughts))
+          else IO.unit
         _ <- IO.println(
           formatDocsEvaluation(args.owner, args.repo, docsEvaluation)
         )
@@ -77,5 +83,8 @@ case class CliArgs(
     @HelpMessage("Git reference (branch, tag, or sha, defaults to 'main')")
     gitRef: String = "main",
     @HelpMessage("AWS region (defaults to 'us-east-1' for Bedrock usage)")
-    region: String = "us-east-1"
+    region: String = "us-east-1",
+    @HelpMessage("Verbose output will show the thinking behind the evaluation")
+    @Name("v")
+    verbose: Boolean = false
 )

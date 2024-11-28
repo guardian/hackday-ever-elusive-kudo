@@ -10,7 +10,7 @@ import github4s.GithubClient
 import github4s.algebras.GithubAPIs
 import github4s.domain.{BlobContent, TreeDataResult}
 import org.http4s.ember.client.EmberClientBuilder
-import org.typelevel.log4cats._
+import org.typelevel.log4cats.*
 
 import java.util.Base64
 

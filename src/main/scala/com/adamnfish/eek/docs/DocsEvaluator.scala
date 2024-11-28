@@ -3,10 +3,13 @@ package com.adamnfish.eek.docs
 import cats.syntax.all.*
 import com.adamnfish.eek.docs.DocsEvaluator.DocsEvaluation
 import com.adamnfish.eek.vcs.VcsInformation
+
 import scala.Console.*
 
 trait DocsEvaluator[F[_]] {
-  def evaluateDocs(allDocs: List[VcsInformation.DocsFile]): F[DocsEvaluation]
+  def evaluateDocs(
+      allDocs: List[VcsInformation.DocsFile]
+  ): F[(DocsEvaluation, String)]
 }
 
 object DocsEvaluator {
@@ -111,6 +114,11 @@ object DocsEvaluator {
          |    ${formatDocsQuality("Data backup", docsEvaluation.dataGovernanceEvaluation.understandingDataBackup)}
          |""".stripMargin
     // format: on
+
+    def formatThoughts(thoughts: String): String =
+      s"""${BOLD}Evaluation reasoning${RESET} ${CYAN}(included because the `verbose` flag has been set)${RESET}
+         |$thoughts
+         |${BOLD}End of evaluation reasoning${RESET}""".stripMargin
 
     def empty: DocsEvaluation =
       DocsEvaluation(

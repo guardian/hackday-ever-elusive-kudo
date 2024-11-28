@@ -2,6 +2,7 @@ package com.adamnfish.eek.integration
 
 import cats.effect.{IO, Resource}
 import com.adamnfish.eek.docs.AwsBedrockDocsEvaluator
+import com.adamnfish.eek.docs.DocsEvaluator.DocsEvaluation
 import com.adamnfish.eek.docs.DocsEvaluator.DocsEvaluation.formatDocsEvaluation
 import com.adamnfish.eek.vcs.VcsInformation.DocsFile
 import munit.CatsEffectSuite
@@ -27,7 +28,10 @@ class BuildDocsEvaluator extends CatsEffectSuite {
       for {
         readmeContents <- IO.blocking(readme.getLines.mkString("\n"))
         readmeDoc = DocsFile("readme.md", readmeContents)
-        docsEvaluation <- evaluator.evaluateDocs(List(readmeDoc))
+        (docsEvaluation, thoughts) <- evaluator.evaluateDocs(List(readmeDoc))
+        _ <- IO.println(
+          DocsEvaluation.formatThoughts(thoughts)
+        )
         _ <- IO.println(
           formatDocsEvaluation("owner", "repo", docsEvaluation)
         )

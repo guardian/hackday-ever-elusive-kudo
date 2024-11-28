@@ -2,12 +2,12 @@ package com.adamnfish.eek.docs
 
 import cats.MonadThrow
 import cats.effect.Resource
-import cats.effect.std.Console
 import cats.effect.kernel.Sync
+import cats.effect.std.Console
 import cats.syntax.all.*
 import com.adamnfish.eek.docs.AwsBedrockDocsEvaluator.Parser
-import com.adamnfish.eek.docs.DocsEvaluator.DocsQuality.MayNeedImprovement
 import com.adamnfish.eek.docs.DocsEvaluator.*
+import com.adamnfish.eek.docs.DocsEvaluator.DocsQuality.MayNeedImprovement
 import com.adamnfish.eek.vcs.VcsInformation
 import com.adamnfish.eek.vcs.VcsInformation.DocsFile
 import org.typelevel.log4cats.LoggerFactory
@@ -26,7 +26,7 @@ class AwsBedrockDocsEvaluator[F[_]: Sync: MonadThrow: LoggerFactory](
 
   override def evaluateDocs(
       allDocs: List[VcsInformation.DocsFile]
-  ): F[DocsEvaluation] = {
+  ): F[(DocsEvaluation, String)] = {
     val message = AwsBedrockDocsEvaluator.createMessage(allDocs)
     for {
       _ <- logger.debug(
@@ -58,8 +58,9 @@ class AwsBedrockDocsEvaluator[F[_]: Sync: MonadThrow: LoggerFactory](
            |$content
            |""".stripMargin
       )
+      thoughts = Parser.parseBedrockThinking(content)
       evaluation <- Parser.parseBedrockResponse(content)
-    } yield evaluation
+    } yield (evaluation, thoughts)
   }
 }
 
@@ -276,7 +277,8 @@ object AwsBedrockDocsEvaluator {
 
   object Parser {
 
-    import fastparse._, NoWhitespace._
+    import fastparse.*
+    import NoWhitespace.*
 
     def parseBedrockResponse[F[_]: MonadThrow](
         response: String
@@ -288,6 +290,16 @@ object AwsBedrockDocsEvaluator {
           .takeWhile(_ != "</evaluation>")
           .mkString("\n")
       )
+    }
+
+    def parseBedrockThinking(
+        response: String
+    ): String = {
+      response.linesIterator
+        .dropWhile(_ != "<thinking>")
+        .drop(1)
+        .takeWhile(_ != "</thinking>")
+        .mkString("\n")
     }
 
     private[docs] def parseEvaluation[F[_]: MonadThrow](
