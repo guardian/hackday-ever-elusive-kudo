@@ -64,7 +64,7 @@ class AwsBedrockDocsEvaluator[F[_]: Sync: MonadThrow: LoggerFactory](
 }
 
 object AwsBedrockDocsEvaluator {
-  //  val modelId = "us.anthropic.claude-3-5-sonnet-20241022-v2:0"
+//  val modelId = "us.anthropic.claude-3-5-sonnet-20241022-v2:0"
   val modelId = "us.anthropic.claude-3-5-haiku-20241022-v1:0"
 
   def create[F[_]: Sync: LoggerFactory](

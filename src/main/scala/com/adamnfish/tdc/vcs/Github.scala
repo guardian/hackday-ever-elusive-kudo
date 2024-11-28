@@ -34,7 +34,7 @@ class Github[F[_]: Concurrent: Async: Network: MonadThrow: LoggerFactory](
         lookupBlob(owner, repositoryName, tdr.sha).map((tdr.path, _))
       }
       docsAndPaths <- docsBlobsAndPaths.traverse(Github.blobToDocsFile.tupled)
-      _ <- logger.debug(
+      _ <- logger.trace(
         s"""Docs found
            |${docsAndPaths
             .map(docsFile => s"${docsFile.path}\n${docsFile.content}")
@@ -59,6 +59,9 @@ class Github[F[_]: Concurrent: Async: Network: MonadThrow: LoggerFactory](
         gitRef,
         recursive = true
       )
+      _ <- logger.trace(
+        s"""lookupRepoTree response: ${formatHeaders(response.headers)}"""
+      )
       tree <- MonadThrow[F].fromEither(response.result)
     } yield tree.tree
 
@@ -74,9 +77,15 @@ class Github[F[_]: Concurrent: Async: Network: MonadThrow: LoggerFactory](
   ): F[BlobContent] = {
     for {
       response <- githubAPIs.gitData.getBlob(owner, repositoryName, blobSha)
+      _ <- logger.debug(
+        s"""lookupBlob response: ${formatHeaders(response.headers)}"""
+      )
       blob <- MonadThrow[F].fromEither(response.result)
     } yield blob
   }
+
+  def formatHeaders(headers: Map[String, String]): String =
+    headers.map { case (k, v) => s"$k $v" }.mkString(";")
 }
 object Github {
   def create[F[_]: Concurrent: Async: Network: MonadThrow: LoggerFactory](
