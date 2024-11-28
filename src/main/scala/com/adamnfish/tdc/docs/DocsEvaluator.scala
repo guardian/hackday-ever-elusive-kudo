@@ -79,21 +79,21 @@ object DocsEvaluator {
         docsEvaluation: DocsEvaluator.DocsEvaluation
     ): String =
       // format: off
-      s"""Documentation summary for $owner/$repositoryName
-         |  🔑 ${BOLD}Key information${RESET}:
+      s"""Documentation summary for ${BOLD}$owner/$repositoryName${RESET}
+         |🔑 ${BOLD}Key information${RESET}:
          |    ${formatDocsQuality("Description", docsEvaluation.basics.description)}
          |    ${formatDocsQuality("Running locally", docsEvaluation.basics.howToRunLocally)}
-         |    ${formatDocsQuality("Running in prod", docsEvaluation.basics.howToRunInProd)}
+         |    ${formatDocsQuality("Running in PROD", docsEvaluation.basics.howToRunInProd)}
          |    ${formatDocsQuality("Deploying", docsEvaluation.basics.howToDeploy)}
          |    ${formatDocsQuality("Testing", docsEvaluation.basics.howToTest)}
-         |  💻 ${BOLD}Software development support${RESET}:
+         |💻 ${BOLD}Software development support${RESET}:
          |    ${formatDocsQuality("Contributing", docsEvaluation.contributing.howToContribute)}
          |    ${formatDocsQuality("Reporting issues", docsEvaluation.contributing.howToReportIssues)}
          |    ${formatDocsQuality("Getting help", docsEvaluation.contributing.howToGetHelp)}
-         |  🌏 ${BOLD}High-level overview${RESET}:
+         |🌏 ${BOLD}High-level overview${RESET}:
          |    ${formatDocsQuality("Architecture", docsEvaluation.architecture.architectureOverview)}
          |    ${formatDocsQuality("Data flow overview", docsEvaluation.architecture.dataFlowOverview)}
-         |  🔧 ${BOLD}Detailed technical information${RESET}:
+         |🔧 ${BOLD}Detailed technical information${RESET}:
          |    ${formatDocsQuality("Code", docsEvaluation.technicalDetailEvaluation.understandingCode)}
          |    ${formatDocsQuality("Dependencies", docsEvaluation.technicalDetailEvaluation.understandingDependencies)}
          |    ${formatDocsQuality("Tests", docsEvaluation.technicalDetailEvaluation.understandingTests)}
@@ -101,7 +101,7 @@ object DocsEvaluator {
          |    ${formatDocsQuality("Security", docsEvaluation.technicalDetailEvaluation.understandingSecurity)}
          |    ${formatDocsQuality("Monitoring", docsEvaluation.technicalDetailEvaluation.understandingMonitoring)}
          |    ${formatDocsQuality("Logging", docsEvaluation.technicalDetailEvaluation.understandingLogging)}
-         |  🪣 ${BOLD}Detailed data information${RESET}:
+         |🪣 ${BOLD}Detailed data information${RESET}:
          |    ${formatDocsQuality("Data storage", docsEvaluation.dataGovernanceEvaluation.understandingDataStorage)}
          |    ${formatDocsQuality("Data processing", docsEvaluation.dataGovernanceEvaluation.understandingDataProcessing)}
          |    ${formatDocsQuality("Data transfer", docsEvaluation.dataGovernanceEvaluation.understandingDataTransfer)}
