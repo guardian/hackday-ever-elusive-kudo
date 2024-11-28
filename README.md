@@ -36,7 +36,7 @@ Contributions are welcome, this repository allows Pull Requests from colleagues.
 
 ### Support / issues
 
-Please get in touch with @adamnfish, or open an issue on this repository.
+Please get in touch with [@adamnfish](https://github.com/adamnfish), or open an issue on this repository.
 
 ## Architecture
 
@@ -101,7 +101,7 @@ The provided GitHub Access token determines what GitHub data is accessible to th
 
 Detailed runtime logs are saved in the `logs` directory of this project.
 
-No monitoring strategy exists for this locally executed hack day project.
+No monitoring strategy exists for this locally executed hack day project. When in production, the execution time and Bedrock costs will be the key metrics to consider.
 
 ## Data
 
