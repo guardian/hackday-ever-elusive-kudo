@@ -9,20 +9,21 @@ This is a tool for evaluating developer documentation. Our goal is to help teams
 
 This tool can be run locally using `sbt`.
 
-It requires a GitHub API token and an AWS profile with access to AWS Bedrock. The GitHub API key should be provided as an environment variable and the AWS credentials should be in a named profile.
+It requires a GitHub API token (with the read content scope) and an AWS profile with access to AWS Bedrock. The GitHub API key should be provided as an environment variable and the AWS credentials should be in a named profile.
 
     $ GITHUB_API_KEY=??? sbt
     > run --owner guardian --repo hackday-ever-elusive-kudo --profile aws-profile --git-ref main --region eu-west-1
 
 The program takes a few parameters, some of which have default values:
 
-| Argument  | Description                                                                                         |
-|-----------|-----------------------------------------------------------------------------------------------------|
-| --owner   | The GitHub organisation or user that owns the repository (e.g. `guardian` or `adamnfish`)           |
-| --repo    | The GitHub repository name, taken from its URL (e.g. `everhackda-ever-elusive-kudo`)                |
-| --profile | The AWS profile name that contains valid credentials for calling AWS Bedrock                        |
-| --git-ref | **Optional**: A reference to the version of the repository to check (default: `main`)               |
-| --region  | **Optional**: The AWS region that should be used to call the AWS Bedrock API (default: `us-east-1`) |
+| Argument       | Description                                                                                         |
+|----------------|-----------------------------------------------------------------------------------------------------|
+| --owner        | The GitHub organisation or user that owns the repository (e.g. `guardian` or `adamnfish`)           |
+| --repo         | The GitHub repository name, taken from its URL (e.g. `everhackda-ever-elusive-kudo`)                |
+| --profile      | The AWS profile name that contains valid credentials for calling AWS Bedrock                        |
+| --git-ref      | **Optional**: A reference to the version of the repository to check (default: `main`)               |
+| --region       | **Optional**: The AWS region that should be used to call the AWS Bedrock API (default: `us-east-1`) |
+| --verbose / -v | Prints the LLM's reasoning in addition to its evaluation, to explain its thinking                   |
 
 ### Production
 
