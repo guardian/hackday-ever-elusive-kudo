@@ -20,47 +20,48 @@ import scala.Console.*
 object Main extends IOCaseApp[CliArgs] {
   // CLI app's main method
   override def run(args: CliArgs, otherArgs: RemainingArgs): IO[ExitCode] = {
-    appR(args.profile, args.region).use { appComponents =>
-      for {
-        docs <- appComponents.vcsInformation.repoDocs(
-          args.owner,
-          args.repo,
-          args.gitRef
-        )
-        < <- IO.println(
-          s"Evaluating the following docs files: ${docs.map(df => s"${CYAN}${df.path}${RESET}").mkString(", ")}"
-        )
-        (docsEvaluation, thoughts) <- appComponents.docsEvaluator.evaluateDocs(
-          docs
-        )
-        _ <-
-          if (args.verbose) IO.println(DocsEvaluation.formatThoughts(thoughts))
-          else IO.unit
-        _ <- IO.println(
-          formatDocsEvaluation(args.owner, args.repo, docsEvaluation)
-        )
-      } yield ExitCode.Success
-    }
+    // set up our dependencies
+    resources(args)
+      // and then execute the program
+      .use(app(args, _))
   }
 
+  def app(args: CliArgs, appComponents: AppComponents[IO]): IO[ExitCode] =
+    for {
+      docs <- appComponents.vcsInformation.repoDocs(args.gitRef)
+      < <- appComponents.printer.println(
+        s"Evaluating the following docs files: ${docs.map(df => s"${CYAN}${df.path}${RESET}").mkString(", ")}"
+      )
+      (docsEvaluation, thoughts) <- appComponents.docsEvaluator.evaluateDocs(
+        docs
+      )
+      _ <-
+        if (args.verbose)
+          appComponents.printer.println(DocsEvaluation.formatThoughts(thoughts))
+        else IO.unit
+      _ <- appComponents.printer.println(
+        formatDocsEvaluation(args.owner, args.repo, docsEvaluation)
+      )
+    } yield ExitCode.Success
+
   // sets up the services required by the application
-  def appR(
-      profile: String,
-      regionStr: String
-  ): Resource[IO, AppComponents[IO]] =
-    val region = Region.of(regionStr)
+  def resources(args: CliArgs): Resource[IO, AppComponents[IO]] =
     for {
       apiKey <- Resource.eval(requiredEnvVar("GITHUB_API_KEY"))
       given LoggerFactory[IO] = Slf4jFactory.create[IO]
-      githubApis <- Github.create[IO](apiKey)
-      docsEvaluator <- AwsBedrockDocsEvaluator.create[IO](profile, region)
-    } yield AppComponents(githubApis, docsEvaluator)
+      githubApis <- Github.create[IO](apiKey, args.owner, args.repo)
+      docsEvaluator <- AwsBedrockDocsEvaluator
+        .create[IO](args.profile, Region.of(args.region))
+      printer = ConsolePrinter[IO]
+    } yield AppComponents(githubApis, docsEvaluator, printer)
 
   case class AppComponents[F[_]](
       vcsInformation: VcsInformation[F],
-      docsEvaluator: DocsEvaluator[F]
+      docsEvaluator: DocsEvaluator[F],
+      printer: Printer[F]
   )
 
+  // helper to load an ENV var or fail with a message
   def requiredEnvVar(name: String): IO[String] = {
     for {
       envOpt <- IO.envForIO.get(name)

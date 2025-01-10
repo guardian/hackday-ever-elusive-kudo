@@ -123,38 +123,38 @@ object DocsEvaluator {
     def empty: DocsEvaluation =
       DocsEvaluation(
         basics = DocsBasicsEvaluation(
-          description = DocsQuality.Good,
-          howToRunLocally = DocsQuality.Good,
-          howToRunInProd = DocsQuality.Good,
-          howToDeploy = DocsQuality.Good,
-          howToTest = DocsQuality.Good
+          description = DocsQuality.Missing,
+          howToRunLocally = DocsQuality.Missing,
+          howToRunInProd = DocsQuality.Missing,
+          howToDeploy = DocsQuality.Missing,
+          howToTest = DocsQuality.Missing
         ),
         contributing = ContributingEvaluation(
-          howToContribute = DocsQuality.Good,
-          howToReportIssues = DocsQuality.Good,
-          howToGetHelp = DocsQuality.Good
+          howToContribute = DocsQuality.Missing,
+          howToReportIssues = DocsQuality.Missing,
+          howToGetHelp = DocsQuality.Missing
         ),
         architecture = ArchitectureEvaluation(
-          architectureOverview = DocsQuality.Good,
-          dataFlowOverview = DocsQuality.Good
+          architectureOverview = DocsQuality.Missing,
+          dataFlowOverview = DocsQuality.Missing
         ),
         technicalDetailEvaluation = TechnicalDetailEvaluation(
-          understandingCode = DocsQuality.Good,
-          understandingDependencies = DocsQuality.Good,
-          understandingTests = DocsQuality.Good,
-          understandingPerformance = DocsQuality.Good,
-          understandingSecurity = DocsQuality.Good,
-          understandingMonitoring = DocsQuality.Good,
-          understandingLogging = DocsQuality.Good
+          understandingCode = DocsQuality.Missing,
+          understandingDependencies = DocsQuality.Missing,
+          understandingTests = DocsQuality.Missing,
+          understandingPerformance = DocsQuality.Missing,
+          understandingSecurity = DocsQuality.Missing,
+          understandingMonitoring = DocsQuality.Missing,
+          understandingLogging = DocsQuality.Missing
         ),
         dataGovernanceEvaluation = DataGovernanceEvaluation(
-          understandingDataStorage = DocsQuality.Good,
-          understandingDataProcessing = DocsQuality.Good,
-          understandingDataTransfer = DocsQuality.Good,
-          understandingDataAccess = DocsQuality.Good,
-          understandingDataRetention = DocsQuality.Good,
-          understandingDataDeletion = DocsQuality.Good,
-          understandingDataBackup = DocsQuality.Good
+          understandingDataStorage = DocsQuality.Missing,
+          understandingDataProcessing = DocsQuality.Missing,
+          understandingDataTransfer = DocsQuality.Missing,
+          understandingDataAccess = DocsQuality.Missing,
+          understandingDataRetention = DocsQuality.Missing,
+          understandingDataDeletion = DocsQuality.Missing,
+          understandingDataBackup = DocsQuality.Missing
         )
       )
   }

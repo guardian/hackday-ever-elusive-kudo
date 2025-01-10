@@ -5,11 +5,7 @@ import cats.syntax.all.*
 import com.adamnfish.eek.vcs.VcsInformation.DocsFile
 
 trait VcsInformation[F[_]] {
-  def repoDocs(
-      owner: String,
-      repositoryName: String,
-      vcsRef: String
-  ): F[List[DocsFile]]
+  def repoDocs(vcsRef: String): F[List[DocsFile]]
 }
 object VcsInformation {
   case class DocsFile(path: String, content: String)

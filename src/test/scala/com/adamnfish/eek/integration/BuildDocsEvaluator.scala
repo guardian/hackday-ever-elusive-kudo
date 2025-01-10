@@ -11,9 +11,9 @@ import org.typelevel.log4cats.slf4j.Slf4jFactory
 import software.amazon.awssdk.regions.Region
 
 class BuildDocsEvaluator extends CatsEffectSuite {
-  // this actually hits AWS Bedrock, and is useful to iterate on the prompt
-  // it is disabled with `.ignore`, remove that label to use it
-  // to run just this test, you can use `testOnly -- "--tests=use this to iterate on the prompt"`
+  // this actually hits AWS Bedrock and is useful to iterate on the prompt
+  // it is disabled with `.ignore` - remove that label to use it
+  // to run just this test you can use `testOnly -- "--tests=use this to iterate on the prompt"`
   test("use this to iterate on the prompt".ignore) {
     given LoggerFactory[IO] = Slf4jFactory.create[IO]
     val resources = for {

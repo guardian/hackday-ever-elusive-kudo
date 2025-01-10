@@ -15,15 +15,13 @@ import org.typelevel.log4cats.*
 import java.util.Base64
 
 class Github[F[_]: Concurrent: Async: Network: MonadThrow: LoggerFactory](
-    githubAPIs: GithubAPIs[F]
+    githubAPIs: GithubAPIs[F],
+    owner: String,
+    repositoryName: String
 ) extends VcsInformation[F] {
   private val logger = LoggerFactory[F].getLogger
 
-  override def repoDocs(
-      owner: String,
-      repositoryName: String,
-      vcsRef: String = "main"
-  ): F[List[DocsFile]] = {
+  override def repoDocs(vcsRef: String = "main"): F[List[DocsFile]] = {
     for {
       treeItems <- lookupRepoTree(owner, repositoryName, vcsRef)
       docsTreeItems = treeItems.filter(Github.isDoc)
@@ -89,14 +87,16 @@ class Github[F[_]: Concurrent: Async: Network: MonadThrow: LoggerFactory](
 }
 object Github {
   def create[F[_]: Concurrent: Async: Network: MonadThrow: LoggerFactory](
-      apiKey: String
+      apiKey: String,
+      owner: String,
+      repositoryName: String
   ): Resource[F, Github[F]] = {
     for {
       client <- EmberClientBuilder
         .default[F]
         .build
       githubApis = GithubClient(client, Some(apiKey))
-    } yield Github(githubApis)
+    } yield Github(githubApis, owner, repositoryName)
   }
 
   def isDoc(treeDataResult: TreeDataResult): Boolean = {
