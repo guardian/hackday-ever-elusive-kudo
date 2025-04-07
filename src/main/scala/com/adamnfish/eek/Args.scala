@@ -138,8 +138,8 @@ object Args {
           updateDocsEvaluatorArgs(args, _.copy(region = region))
         ),
       note("Standard options"),
-      opt[Boolean]('v', "verbose")
-        .action((flag, args) => args.copy(verbose = flag))
+      opt[Unit]('v', "verbose")
+        .action((flag, args) => args.copy(verbose = true))
         .text("Verbose mode will print the LLM's reasoning as well as its answer")
     )
   }
