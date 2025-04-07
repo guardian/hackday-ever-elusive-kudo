@@ -46,7 +46,7 @@ which assembles and runs the actual CLI program.
 
 The program is made from two 'services'.
 
-There is a [VcsInformation](src/main/scala/com/adamnfish/eek/vcs/VcsInformation.scala) service, which is used to look up documentation files. This service is implemented by the [`Github`](src/main/scala/com/adamnfish/eek/vcs/Github.scala) class, which is used to fetch documentation files from a GitHub repository.
+There is a [VcsInformation](src/main/scala/com/adamnfish/eek/sourcecode/SourceCode.scala) service, which is used to look up documentation files. This service is implemented by the [`Github`](src/main/scala/com/adamnfish/eek/sourcecode/Github.scala) class, which is used to fetch documentation files from a GitHub repository.
 
 The second service is a [DocsEvaluator](src/main/scala/com/adamnfish/eek/docs/DocsEvaluator.scala), which checks the documentation produced in the previous step. This service is implemented by [`AwsBedrockDocsEvaluator`](src/main/scala/com/adamnfish/eek/docs/AwsBedrockDocsEvaluator.scala), which uses the an LLM provided by AWS Bedrock to evaluate the repository's documentation.
 

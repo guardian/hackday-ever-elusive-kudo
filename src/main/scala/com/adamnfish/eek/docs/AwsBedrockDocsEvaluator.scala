@@ -8,8 +8,8 @@ import cats.syntax.all.*
 import com.adamnfish.eek.docs.AwsBedrockDocsEvaluator.Parser
 import com.adamnfish.eek.docs.DocsEvaluator.*
 import com.adamnfish.eek.docs.DocsEvaluator.DocsQuality.MayNeedImprovement
-import com.adamnfish.eek.vcs.VcsInformation
-import com.adamnfish.eek.vcs.VcsInformation.DocsFile
+import com.adamnfish.eek.sourcecode.SourceCode
+import com.adamnfish.eek.sourcecode.SourceCode.DocsFile
 import org.typelevel.log4cats.LoggerFactory
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 import software.amazon.awssdk.http.apache.ApacheHttpClient
@@ -25,7 +25,7 @@ class AwsBedrockDocsEvaluator[F[_]: Sync: MonadThrow: LoggerFactory](
   private val logger = LoggerFactory.getLogger[F]
 
   override def evaluateDocs(
-      allDocs: List[VcsInformation.DocsFile]
+      allDocs: List[SourceCode.DocsFile]
   ): F[(DocsEvaluation, String)] = {
     val message = AwsBedrockDocsEvaluator.createMessage(allDocs)
     for {
@@ -324,16 +324,7 @@ object AwsBedrockDocsEvaluator {
     private def docsEvaluationParser[$: P]: P[DocsEvaluation] = {
       P(
         basicsParser ~/ contributingParser ~/ architectureParser ~/ technicalDetailParser ~/ dataGovernanceParser ~/ End
-      ).map {
-        (basics, contributing, architecture, technicalDetail, dataGovernance) =>
-          DocsEvaluation(
-            basics,
-            contributing,
-            architecture,
-            technicalDetail,
-            dataGovernance
-          )
-      }
+      ).map(DocsEvaluation.apply.tupled)
     }
 
     private def basicsParser[$: P]: P[DocsBasicsEvaluation] = {
@@ -345,22 +336,7 @@ object AwsBedrockDocsEvaluator {
           "howToDeploy: " ~ docsQualityParser ~/
           "howToTest: " ~ docsQualityParser
         // format: on
-      ).map {
-        case (
-              description,
-              howToRunLocally,
-              howToRunInProd,
-              howToDeploy,
-              howToTest
-            ) =>
-          DocsBasicsEvaluation(
-            description,
-            howToRunLocally,
-            howToRunInProd,
-            howToDeploy,
-            howToTest
-          )
-      }
+      ).map(DocsBasicsEvaluation.apply.tupled)
     }
 
     private def contributingParser[$: P]: P[ContributingEvaluation] = {
@@ -370,13 +346,7 @@ object AwsBedrockDocsEvaluator {
           "howToReportIssues: " ~ docsQualityParser ~/
           "howToGetHelp: " ~ docsQualityParser
         // format: on
-      ).map { case (howToContribute, howToReportIssues, howToGetHelp) =>
-        ContributingEvaluation(
-          howToContribute,
-          howToReportIssues,
-          howToGetHelp
-        )
-      }
+      ).map(ContributingEvaluation.apply.tupled)
     }
 
     private def architectureParser[$: P]: P[ArchitectureEvaluation] = {
@@ -385,12 +355,7 @@ object AwsBedrockDocsEvaluator {
         "architectureOverview: " ~ docsQualityParser ~/
           "dataFlowOverview: " ~ docsQualityParser
         // format: on
-      ).map { case (architectureOverview, dataFlowOverview) =>
-        ArchitectureEvaluation(
-          architectureOverview,
-          dataFlowOverview
-        )
-      }
+      ).map(ArchitectureEvaluation.apply.tupled)
     }
 
     private def technicalDetailParser[$: P]: P[TechnicalDetailEvaluation] = {
@@ -404,26 +369,7 @@ object AwsBedrockDocsEvaluator {
           "understandingMonitoring: " ~ docsQualityParser ~/
           "understandingLogging: " ~ docsQualityParser
         // format: on
-      ).map {
-        case (
-              understandingCode,
-              understandingDependencies,
-              understandingTests,
-              understandingPerformance,
-              understandingSecurity,
-              understandingMonitoring,
-              understandingLogging
-            ) =>
-          TechnicalDetailEvaluation(
-            understandingCode,
-            understandingDependencies,
-            understandingTests,
-            understandingPerformance,
-            understandingSecurity,
-            understandingMonitoring,
-            understandingLogging
-          )
-      }
+      ).map(TechnicalDetailEvaluation.apply.tupled)
     }
 
     private def dataGovernanceParser[$: P]: P[DataGovernanceEvaluation] = {
@@ -437,26 +383,7 @@ object AwsBedrockDocsEvaluator {
           "understandingDataDeletion: " ~ docsQualityParser ~/
           "understandingDataBackup: " ~ docsQualityParser
         // format: on
-      ).map {
-        case (
-              understandingDataStorage,
-              understandingDataProcessing,
-              understandingDataTransfer,
-              understandingDataAccess,
-              understandingDataRetention,
-              understandingDataDeletion,
-              understandingDataBackup
-            ) =>
-          DataGovernanceEvaluation(
-            understandingDataStorage,
-            understandingDataProcessing,
-            understandingDataTransfer,
-            understandingDataAccess,
-            understandingDataRetention,
-            understandingDataDeletion,
-            understandingDataBackup
-          )
-      }
+      ).map(DataGovernanceEvaluation.apply.tupled)
     }
 
     private def docsQualityParser[$: P]: P[DocsQuality] = {

@@ -1,4 +1,4 @@
-package com.adamnfish.eek.vcs
+package com.adamnfish.eek.sourcecode
 
 import cats.*
 import cats.data.*
@@ -6,19 +6,19 @@ import cats.syntax.all.*
 import cats.effect.{Concurrent, IO}
 import cats.effect.kernel.Async
 import cats.effect.std.Console
-import com.adamnfish.eek.vcs.Filesystem.docsForPath
+import com.adamnfish.eek.sourcecode.Filesystem.docsForPath
 import fs2.io.file.{Files, Path}
 import org.typelevel.log4cats.LoggerFactory
 import org.typelevel.log4cats.Logger
 
-class Filesystem[F[_]: MonadThrow: Concurrent: Files: Console]
-    extends VcsInformation[F] {
+class Filesystem[F[_]: MonadThrow: Concurrent: Files: Console](sourceCodeRoot: String)
+    extends SourceCode[F] {
 
   /** Loads VCS information from the source code at the provided filesystem
     * location.
     */
-  override def repoDocs(vcsRef: String): F[List[VcsInformation.DocsFile]] = {
-    val rootPath = Path(vcsRef)
+  override def repoDocs: F[List[SourceCode.DocsFile]] = {
+    val rootPath = Path(sourceCodeRoot)
     Files[F]
       .walk(rootPath)
       .filter(Filesystem.filterPath(_, rootPath))
@@ -27,23 +27,25 @@ class Filesystem[F[_]: MonadThrow: Concurrent: Files: Console]
       .compile
       .toList
   }
+
+  override def summary: String = sourceCodeRoot
 }
 object Filesystem {
   def docsForPath[F[_]: Concurrent: MonadThrow: Files](
       path: Path,
       rootPath: Path
-  ): F[VcsInformation.DocsFile] = {
+  ): F[SourceCode.DocsFile] = {
     for {
       content <- Files[F]
         .readUtf8(path)
         .compile
         .lastOrError
       relativePath = rootPath.relativize(path).toString
-    } yield VcsInformation.DocsFile(relativePath, content)
+    } yield SourceCode.DocsFile(relativePath, content)
   }
 
   def filterPath(path: Path, rootPath: Path): Boolean = {
     val relativePath = rootPath.relativize(path).toString
-    VcsInformation.isDocPath(relativePath)
+    SourceCode.isDocPath(relativePath)
   }
 }

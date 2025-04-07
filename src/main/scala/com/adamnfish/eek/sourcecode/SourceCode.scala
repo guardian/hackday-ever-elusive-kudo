@@ -1,13 +1,15 @@
-package com.adamnfish.eek.vcs
+package com.adamnfish.eek.sourcecode
 
 import cats.*
 import cats.syntax.all.*
-import com.adamnfish.eek.vcs.VcsInformation.DocsFile
+import com.adamnfish.eek.sourcecode.SourceCode.DocsFile
 
-trait VcsInformation[F[_]] {
-  def repoDocs(vcsRef: String): F[List[DocsFile]]
+trait SourceCode[F[_]] {
+  def repoDocs: F[List[DocsFile]]
+
+  def summary: String
 }
-object VcsInformation {
+object SourceCode {
   case class DocsFile(path: String, content: String)
 
   /** A collection of checks to perform on a path. If any pass, we consider the

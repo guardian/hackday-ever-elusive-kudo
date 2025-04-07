@@ -1,10 +1,12 @@
-package com.adamnfish.eek.vcs
+package com.adamnfish.eek.sourcecode
 
 import cats.MonadThrow
 import cats.effect.kernel.Async
+import cats.effect.std.Env
 import cats.effect.{Concurrent, Resource}
 import cats.syntax.all.*
-import com.adamnfish.eek.vcs.VcsInformation.DocsFile
+import com.adamnfish.eek.SourceCodeArgs.GitHubArgs
+import com.adamnfish.eek.sourcecode.SourceCode.DocsFile
 import fs2.io.net.Network
 import github4s.GithubClient
 import github4s.algebras.GithubAPIs
@@ -17,11 +19,12 @@ import java.util.Base64
 class Github[F[_]: Concurrent: Async: Network: MonadThrow: LoggerFactory](
     githubAPIs: GithubAPIs[F],
     owner: String,
-    repositoryName: String
-) extends VcsInformation[F] {
+    repositoryName: String,
+    vcsRef: String
+) extends SourceCode[F] {
   private val logger = LoggerFactory[F].getLogger
 
-  override def repoDocs(vcsRef: String = "main"): F[List[DocsFile]] = {
+  override def repoDocs: F[List[DocsFile]] = {
     for {
       treeItems <- lookupRepoTree(owner, repositoryName, vcsRef)
       docsTreeItems = treeItems.filter(Github.isDoc)
@@ -40,6 +43,8 @@ class Github[F[_]: Concurrent: Async: Network: MonadThrow: LoggerFactory](
       )
     } yield docsAndPaths
   }
+
+  override def summary: String = s"$owner/$repositoryName"
 
   /** Fetches the full content tree for the repository.
     *
@@ -86,22 +91,23 @@ class Github[F[_]: Concurrent: Async: Network: MonadThrow: LoggerFactory](
     headers.map { case (k, v) => s"$k $v" }.mkString(";")
 }
 object Github {
-  def create[F[_]: Concurrent: Async: Network: MonadThrow: LoggerFactory](
-      apiKey: String,
+  def create[F[_]: Concurrent: Async: Network: MonadThrow: LoggerFactory: Env](
       owner: String,
-      repositoryName: String
+      repositoryName: String,
+      gitRef: String
   ): Resource[F, Github[F]] = {
     for {
+      apiKey <- Resource.eval(requiredEnvVar("GITHUB_API_KEY"))
       client <- EmberClientBuilder
         .default[F]
         .build
       githubApis = GithubClient(client, Some(apiKey))
-    } yield Github(githubApis, owner, repositoryName)
+    } yield Github(githubApis, owner, repositoryName, gitRef)
   }
 
   def isDoc(treeDataResult: TreeDataResult): Boolean = {
     treeDataResult.`type` == "blob" &&
-    VcsInformation.isDocPath(treeDataResult.path)
+    SourceCode.isDocPath(treeDataResult.path)
   }
 
   def blobToDocsFile[F[_]: MonadThrow](
@@ -128,5 +134,16 @@ object Github {
           )
         )
     }).map(DocsFile(path, _))
+  }
+
+  // helper to load an ENV var or fail with a message
+  def requiredEnvVar[F[_]: MonadThrow: Env](name: String): F[String] = {
+    for {
+      envOpt <- Env[F].get(name)
+      env <- MonadThrow[F].fromOption(
+        envOpt,
+        IllegalStateException(s"Could not load required ENV variable '$name'")
+      )
+    } yield env
   }
 }

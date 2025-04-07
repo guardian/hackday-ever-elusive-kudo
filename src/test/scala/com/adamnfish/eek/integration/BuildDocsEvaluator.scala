@@ -4,7 +4,7 @@ import cats.effect.{IO, Resource}
 import com.adamnfish.eek.docs.AwsBedrockDocsEvaluator
 import com.adamnfish.eek.docs.DocsEvaluator.DocsEvaluation
 import com.adamnfish.eek.docs.DocsEvaluator.DocsEvaluation.formatDocsEvaluation
-import com.adamnfish.eek.vcs.VcsInformation.DocsFile
+import com.adamnfish.eek.sourcecode.SourceCode.DocsFile
 import munit.CatsEffectSuite
 import org.typelevel.log4cats.LoggerFactory
 import org.typelevel.log4cats.slf4j.Slf4jFactory
@@ -33,7 +33,7 @@ class BuildDocsEvaluator extends CatsEffectSuite {
           DocsEvaluation.formatThoughts(thoughts)
         )
         _ <- IO.println(
-          formatDocsEvaluation("owner", "repo", docsEvaluation)
+          formatDocsEvaluation("owner/repo", docsEvaluation)
         )
       } yield ()
     }

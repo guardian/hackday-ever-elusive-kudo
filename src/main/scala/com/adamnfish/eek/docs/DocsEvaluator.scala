@@ -2,13 +2,14 @@ package com.adamnfish.eek.docs
 
 import cats.syntax.all.*
 import com.adamnfish.eek.docs.DocsEvaluator.DocsEvaluation
-import com.adamnfish.eek.vcs.VcsInformation
+import com.adamnfish.eek.sourcecode.SourceCode
+import scala.concurrent.duration.*
 
 import scala.Console.*
 
 trait DocsEvaluator[F[_]] {
   def evaluateDocs(
-      allDocs: List[VcsInformation.DocsFile]
+      allDocs: List[SourceCode.DocsFile]
   ): F[(DocsEvaluation, String)]
 }
 
@@ -77,12 +78,11 @@ object DocsEvaluator {
           s"🔴 $label - ${CYAN}Not found${RESET}"
 
     def formatDocsEvaluation(
-        owner: String,
-        repositoryName: String,
+        summary: String,
         docsEvaluation: DocsEvaluator.DocsEvaluation
     ): String =
       // format: off
-      s"""Documentation summary for ${BOLD}$owner/$repositoryName${RESET}
+      s"""Documentation summary for ${BOLD}$summary${RESET}
          |🔑 ${BOLD}Key information${RESET}:
          |    ${formatDocsQuality("Description", docsEvaluation.basics.description)}
          |    ${formatDocsQuality("Running locally", docsEvaluation.basics.howToRunLocally)}

@@ -1,91 +1,80 @@
 package com.adamnfish.eek
 
-import caseapp.catseffect.IOCaseApp
-import caseapp.*
+import cats.effect.IOApp
 import cats.effect.{ExitCode, IO, Resource}
 import cats.syntax.all.*
 import com.adamnfish.eek.docs.AwsBedrockDocsEvaluator
 import com.adamnfish.eek.docs.DocsEvaluator
 import com.adamnfish.eek.docs.DocsEvaluator.DocsEvaluation
 import com.adamnfish.eek.docs.DocsEvaluator.DocsEvaluation.formatDocsEvaluation
-import com.adamnfish.eek.vcs.{Github, VcsInformation}
+import com.adamnfish.eek.sourcecode.{Filesystem, Github, SourceCode}
 import fs2.io.net.Network
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import software.amazon.awssdk.regions.Region
-import org.typelevel.log4cats._
+import org.typelevel.log4cats.*
 import org.typelevel.log4cats.slf4j.Slf4jFactory
+
 import scala.Console.*
 
-object Main extends IOCaseApp[CliArgs] {
-  // CLI app's main method
-  override def run(args: CliArgs, otherArgs: RemainingArgs): IO[ExitCode] = {
-    // set up our dependencies
-    resources(args)
-      // and then execute the program
-      .use(app(args, _))
-  }
+object Main extends IOApp {
+  override def run(args: List[String]): IO[ExitCode] =
+    Args
+      .parseArgs[IO](args)
+      .toResource
+      .flatMap(makeAppComponents)
+      .use(app)
 
-  def app(args: CliArgs, appComponents: AppComponents[IO]): IO[ExitCode] =
+  def app(appComponents: AppComponents[IO]): IO[ExitCode] =
     for {
-      docs <- appComponents.vcsInformation.repoDocs(args.gitRef)
-      < <- appComponents.printer.println(
+      docs <- appComponents.sourceCode.repoDocs
+      _ <- appComponents.printer.println(
         s"Evaluating the following docs files: ${docs.map(df => s"${CYAN}${df.path}${RESET}").mkString(", ")}"
       )
       (docsEvaluation, thoughts) <- appComponents.docsEvaluator.evaluateDocs(
         docs
       )
       _ <-
-        if (args.verbose)
+        if (appComponents.appFlags.verbose)
           appComponents.printer.println(DocsEvaluation.formatThoughts(thoughts))
         else IO.unit
       _ <- appComponents.printer.println(
-        formatDocsEvaluation(args.owner, args.repo, docsEvaluation)
+        formatDocsEvaluation(appComponents.sourceCode.summary, docsEvaluation)
       )
     } yield ExitCode.Success
 
-  // sets up the services required by the application
-  def resources(args: CliArgs): Resource[IO, AppComponents[IO]] =
+  def makeAppComponents(args: Args): Resource[IO, AppComponents[IO]] =
+    given LoggerFactory[IO] = Slf4jFactory.create[IO]
     for {
-      apiKey <- Resource.eval(requiredEnvVar("GITHUB_API_KEY"))
-      given LoggerFactory[IO] = Slf4jFactory.create[IO]
-      githubApis <- Github.create[IO](apiKey, args.owner, args.repo)
-      docsEvaluator <- AwsBedrockDocsEvaluator
-        .create[IO](args.profile, Region.of(args.region))
-      printer = ConsolePrinter[IO]
-    } yield AppComponents(githubApis, docsEvaluator, printer)
+      githubApis: SourceCode[IO] <-
+        args.sourceCodeArgs match
+          case SourceCodeArgs.GitHubArgs(owner, repo, gitRef) =>
+            Github.create[IO](owner, repo, gitRef)
+          case SourceCodeArgs.FilesystemArgs(path) =>
+            Resource.pure(new Filesystem[IO](path.getAbsolutePath))
+          case SourceCodeArgs.SourceCodeArgsNotSpecified =>
+            IO.raiseError(new RuntimeException("TODO")).toResource
+
+      docsEvaluator <-
+        args.docsEvaluatorArgs match
+          case DocsEvaluatorArgs.AwsBedrockArgs(profile, region) =>
+            AwsBedrockDocsEvaluator.create[IO](profile, Region.of(region))
+          case DocsEvaluatorArgs.DocsEvaluatorArgsNotSpecified =>
+            IO.raiseError(new RuntimeException("TODO")).toResource
+    } yield AppComponents[IO](
+      githubApis,
+      docsEvaluator,
+      ConsolePrinter[IO],
+      AppFlags(verbose = args.verbose)
+    )
 
   case class AppComponents[F[_]](
-      vcsInformation: VcsInformation[F],
+      sourceCode: SourceCode[F],
       docsEvaluator: DocsEvaluator[F],
-      printer: Printer[F]
+      printer: Printer[F],
+      appFlags: AppFlags
   )
-
-  // helper to load an ENV var or fail with a message
-  def requiredEnvVar(name: String): IO[String] = {
-    for {
-      envOpt <- IO.envForIO.get(name)
-      env <- IO.fromOption(envOpt)(
-        IllegalStateException(s"Could not load required ENV variable '$name'")
-      )
-    } yield env
-  }
+  case class AppFlags(
+      verbose: Boolean
+  )
 }
-
-@AppName("Ever-elusive kudo")
-@ProgName("eek")
-case class CliArgs(
-    @HelpMessage("Repository owner")
-    owner: String,
-    @HelpMessage("Repository name")
-    repo: String,
-    @HelpMessage("AWS profile name")
-    profile: String,
-    @HelpMessage("Git reference (branch, tag, or sha, defaults to 'main')")
-    gitRef: String = "main",
-    @HelpMessage("AWS region (defaults to 'us-east-1' for Bedrock usage)")
-    region: String = "us-east-1",
-    @HelpMessage("Verbose output will show the thinking behind the evaluation")
-    @Name("v")
-    verbose: Boolean = false
-)

@@ -101,10 +101,10 @@ class DocsEvaluatorTest extends ScalaCheckSuite {
     }
   }
 
-  property("formatDocsEvaluation contains the owner and repo") {
+  property("formatDocsEvaluation contains the provided summary") {
     forAll { (owner: String, repo: String) =>
       assert(
-        formatDocsEvaluation(owner, repo, DocsEvaluation.empty).contains(
+        formatDocsEvaluation(s"$owner/$repo", DocsEvaluation.empty).contains(
           s"$owner/$repo"
         )
       )
