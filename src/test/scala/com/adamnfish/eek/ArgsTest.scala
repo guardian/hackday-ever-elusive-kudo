@@ -1,14 +1,15 @@
 package com.adamnfish.eek
 
-import munit.CatsEffectSuite
+import munit.{CatsEffectSuite, FunSuite}
 import cats.effect.IO
 import com.adamnfish.eek.DocsEvaluatorArgs.AwsBedrockArgs
-import com.adamnfish.eek.SourceCodeArgs.{GitHubArgs, FilesystemArgs}
+import com.adamnfish.eek.SourceCodeArgs.{FilesystemArgs, GitHubArgs}
+
 import java.io.File
 
-class ArgsTest extends CatsEffectSuite {
+class ArgsTest extends FunSuite {
   test("parses example GitHub CLI args") {
-    val args = Seq(
+    val cliArgs = Seq(
       // format: off
       "github",
       "-o", "owner",
@@ -16,34 +17,36 @@ class ArgsTest extends CatsEffectSuite {
       "-p", "profile"
       // format: on
     )
-    for {
-      args <- Args.parseArgs[IO](args)
-    } yield assertEquals(
-      args,
-      Args(
-        GitHubArgs("owner", "repository"),
-        AwsBedrockArgs("profile"),
-        verbose = false
+    val (maybeArgs, _) = Args.parseArgs(cliArgs)
+    assertEquals(
+      maybeArgs,
+      Some(
+        Args(
+          GitHubArgs("owner", "repository"),
+          AwsBedrockArgs("profile"),
+          verbose = false
+        )
       )
     )
   }
 
   test("parses example local filesystem, CLI args") {
-    val args = Seq(
+    val cliArgs = Seq(
       // format: off
       "local",
       "-d", "src/main",
       "--profile", "profile-name",
       // format: on
     )
-    for {
-      args <- Args.parseArgs[IO](args)
-    } yield assertEquals(
-      args,
-      Args(
-        FilesystemArgs(new File("src/main")),
-        AwsBedrockArgs("profile-name"),
-        verbose = false
+    val (maybeArgs, _) = Args.parseArgs(cliArgs)
+    assertEquals(
+      maybeArgs,
+      Some(
+        Args(
+          FilesystemArgs(new File("src/main")),
+          AwsBedrockArgs("profile-name"),
+          verbose = false
+        )
       )
     )
   }

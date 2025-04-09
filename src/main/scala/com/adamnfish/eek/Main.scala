@@ -20,10 +20,14 @@ import scala.Console.*
 object Main extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
     Args
-      .parseArgs[IO](args)
-      .toResource
-      .flatMap(makeAppComponents)
-      .use(app)
+      .parse[IO](args)
+      .flatMap {
+        case Right(args) =>
+          makeAppComponents(args)
+            .use(app)
+        case Left(exitCode) =>
+          IO.pure(ExitCode.Success)
+      }
 
   def app(appComponents: AppComponents[IO]): IO[ExitCode] =
     for {

@@ -3,7 +3,7 @@ package com.adamnfish.eek
 import cats.*
 import cats.data.*
 import cats.syntax.all.*
-import cats.effect.IO
+import cats.effect.{ExitCode, IO}
 import cats.effect.std.Console
 import com.adamnfish.eek.DocsEvaluatorArgs.*
 import com.adamnfish.eek.SourceCodeArgs.*
@@ -24,32 +24,62 @@ object Args {
     verbose = false
   )
 
-  def parseArgs[F[_]: MonadThrow: Console](args: Seq[String]): F[Args] = {
-    OParser.runParser(parser, args, Args.empty) match {
+  def parseArgs(args: Seq[String]): (Option[Args], List[OEffect]) = {
+    OParser.runParser(parser, args, Args.empty)
+  }
+
+  /** Do the parsing, and execute the resulting effects (printing errors etc)
+    */
+  def parse[F[_]: Monad: Console](
+      args: Seq[String]
+  ): F[Either[ExitCode, Args]] = {
+    parseArgs(args) match {
       case (Some(config), effects) =>
-        executeOEffects(effects) *> MonadThrow[F].pure(config)
+        // don't expect any effects here, but we'll run them just in case!
+        executeOEffects(effects) *> Applicative[F].pure(Right(config))
       case (None, effects) =>
-        executeOEffects(effects) *> MonadThrow[F].raiseError(
-          new Exception("Failed to parse args")
-        )
+        executeOEffects(effects).flatMap {
+          case Some(exitCode) =>
+            Applicative[F].pure(Left(exitCode))
+          case None =>
+            // no exit code from effects, but failed to get args - unexpected state
+            Console[F]
+              .errorln("Unable to parse command line arguments")
+              .as(Left(ExitCode.Error))
+        }
     }
   }
 
-  private def executeOEffects[F[_]: Applicative: Console](
+  private def executeOEffects[F[_]: Monad: Console](
       effects: List[OEffect]
-  ): F[Unit] = {
-    effects.traverse {
-      case OEffect.DisplayToOut(msg) =>
-        Console[F].println(msg)
-      case OEffect.DisplayToErr(msg) =>
-        Console[F].errorln(msg)
-      case OEffect.ReportError(msg) =>
-        Console[F].errorln(s"Error: $msg")
-      case OEffect.ReportWarning(msg) =>
-        Console[F].println(s"Warning: $msg")
-      case OEffect.Terminate(existState) =>
-        Applicative[F].unit
-    } *> Applicative[F].unit
+  ): F[Option[ExitCode]] = {
+    effects.foldM[F, Option[ExitCode]](None) { (acc, effect) =>
+      for {
+        maybeNextExitCode <- effect match {
+          case OEffect.DisplayToOut(msg) =>
+            Console[F]
+              .println(msg)
+              .as(None)
+          case OEffect.DisplayToErr(msg) =>
+            Console[F]
+              .errorln(msg)
+              .as(None)
+          case OEffect.ReportError(msg) =>
+            Console[F]
+              .errorln(s"Error: $msg")
+              .as(Some(ExitCode.Error))
+          case OEffect.ReportWarning(msg) =>
+            Console[F]
+              .println(s"Warning: $msg")
+              .as(Some(ExitCode.Error))
+          case OEffect.Terminate(existState) =>
+            Applicative[F].pure(Some(ExitCode.Error))
+        }
+      } yield {
+        List(acc, maybeNextExitCode).flatten
+          .maxByOption(_.code)
+      }
+    }
   }
 
   private val builder = OParser.builder[Args]
@@ -140,7 +170,9 @@ object Args {
       note("Standard options"),
       opt[Unit]('v', "verbose")
         .action((flag, args) => args.copy(verbose = true))
-        .text("Verbose mode will print the LLM's reasoning as well as its answer")
+        .text(
+          "Verbose mode will print the LLM's reasoning as well as its answer"
+        )
     )
   }
 
