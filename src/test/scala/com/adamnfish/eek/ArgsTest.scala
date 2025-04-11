@@ -11,9 +11,7 @@ class ArgsTest extends FunSuite {
   test("parses example GitHub CLI args") {
     val cliArgs = Seq(
       // format: off
-      "github",
-      "-o", "owner",
-      "-r", "repository",
+      "github", "owner/repository",
       "-p", "profile"
       // format: on
     )
@@ -33,8 +31,7 @@ class ArgsTest extends FunSuite {
   test("parses example local filesystem, CLI args") {
     val cliArgs = Seq(
       // format: off
-      "local",
-      "-d", "src/main",
+      "local", "src/main",
       "--profile", "profile-name",
       // format: on
     )

@@ -50,39 +50,9 @@ object Args {
     }
   }
 
-  private def executeOEffects[F[_]: Monad: Console](
-      effects: List[OEffect]
-  ): F[Option[ExitCode]] = {
-    effects.foldM[F, Option[ExitCode]](None) { (acc, effect) =>
-      for {
-        maybeNextExitCode <- effect match {
-          case OEffect.DisplayToOut(msg) =>
-            Console[F]
-              .println(msg)
-              .as(None)
-          case OEffect.DisplayToErr(msg) =>
-            Console[F]
-              .errorln(msg)
-              .as(None)
-          case OEffect.ReportError(msg) =>
-            Console[F]
-              .errorln(s"Error: $msg")
-              .as(Some(ExitCode.Error))
-          case OEffect.ReportWarning(msg) =>
-            Console[F]
-              .println(s"Warning: $msg")
-              .as(Some(ExitCode.Error))
-          case OEffect.Terminate(existState) =>
-            Applicative[F].pure(Some(ExitCode.Error))
-        }
-      } yield {
-        List(acc, maybeNextExitCode).flatten
-          .maxByOption(_.code)
-      }
-    }
-  }
-
   private val builder = OParser.builder[Args]
+
+  private val GitHubRepoRegex = "([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+)".r
 
   private val parser: OParser[Unit, Args] = {
     import builder.*
@@ -93,26 +63,28 @@ object Args {
         .text("Evaluate the documentation of a GitHub repository")
         .action((_, a) => a.copy(sourceCodeArgs = GitHubArgs("", "", "")))
         .children(
-          opt[String]('o', "owner")
-            .text("GitHub repository owner (the organisation or user)")
-            .required()
-            .validate { owner =>
-              if (owner.isEmpty) failure("owner cannot be empty")
-              else success
+          arg[String]("repository")
+            .text(
+              "GitHub repository (the organisation or user and repository name) e.g. guardian/frontend"
+            )
+            .validate {
+              case GitHubRepoRegex(owner, repo) =>
+                success
+              case str =>
+                failure(
+                  "Please provide repository in the form owner/repository"
+                )
             }
-            .action((owner, args) =>
-              updateGitHubArgs(args, _.copy(owner = owner))
-            ),
-          opt[String]('r', "repo")
-            .text("GitHub repository name")
-            .required()
-            .validate { repo =>
-              if (repo.isEmpty) failure("repo cannot be empty")
-              else success
-            }
-            .action((repo, args) =>
-              updateGitHubArgs(args, _.copy(repo = repo))
-            ),
+            .action { (str, args) =>
+              str match {
+                case GitHubRepoRegex(owner, repo) =>
+                  updateGitHubArgs(
+                    args,
+                    oldArgs => oldArgs.copy(owner = owner, repo = repo)
+                  )
+                case _ => args
+              }
+            },
           opt[String]('g', "git-ref")
             .text("Git reference to evaluate (default: main)")
             .required()
@@ -131,7 +103,7 @@ object Args {
           a.copy(sourceCodeArgs = SourceCodeArgs.FilesystemArgs(new File("")))
         )
         .children(
-          opt[File]('d', "directory")
+          arg[File]("directory")
             .text("Path to the local project's directory")
             .required()
             .validate { path =>
@@ -176,10 +148,41 @@ object Args {
     )
   }
 
+  private def executeOEffects[F[_]: Monad: Console](
+      effects: List[OEffect]
+  ): F[Option[ExitCode]] = {
+    effects.foldM[F, Option[ExitCode]](None) { (acc, effect) =>
+      for {
+        maybeNextExitCode <- effect match {
+          case OEffect.DisplayToOut(msg) =>
+            Console[F]
+              .println(msg)
+              .as(None)
+          case OEffect.DisplayToErr(msg) =>
+            Console[F]
+              .errorln(msg)
+              .as(None)
+          case OEffect.ReportError(msg) =>
+            Console[F]
+              .errorln(s"Error: $msg")
+              .as(Some(ExitCode.Error))
+          case OEffect.ReportWarning(msg) =>
+            Console[F]
+              .println(s"Warning: $msg")
+              .as(Some(ExitCode.Error))
+          case OEffect.Terminate(existState) =>
+            Applicative[F].pure(Some(ExitCode.Error))
+        }
+      } yield {
+        List(acc, maybeNextExitCode).flatten
+          .maxByOption(_.code)
+      }
+    }
+  }
+
   /** Helpers for updating fields in the nested GitHubArgs object, since we do
     * this repeatedly
     */
-
   private def updateGitHubArgs(
       args: Args,
       update: SourceCodeArgs.GitHubArgs => SourceCodeArgs.GitHubArgs
@@ -190,6 +193,7 @@ object Args {
       case _ => args
     }
   }
+
   private def updateDocsEvaluatorArgs(
       args: Args,
       update: DocsEvaluatorArgs.AwsBedrockArgs => DocsEvaluatorArgs.AwsBedrockArgs
