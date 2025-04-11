@@ -57,81 +57,69 @@ object Args {
   private val parser: OParser[Unit, Args] = {
     import builder.*
     OParser.sequence(
-      programName("ever-elusive-kudo"),
+      programName("eek"),
       head("scopt", "4.x"),
-      cmd("github")
-        .text("Evaluate the documentation of a GitHub repository")
-        .action((_, a) => a.copy(sourceCodeArgs = GitHubArgs("", "", "")))
-        .children(
-          arg[String]("repository")
-            .text(
-              "GitHub repository (the organisation or user and repository name) e.g. guardian/frontend"
-            )
-            .validate {
-              case GitHubRepoRegex(owner, repo) =>
-                success
-              case str =>
-                failure(
-                  "Please provide repository in the form owner/repository"
-                )
-            }
-            .action { (str, args) =>
-              str match {
-                case GitHubRepoRegex(owner, repo) =>
-                  updateGitHubArgs(
-                    args,
-                    oldArgs => oldArgs.copy(owner = owner, repo = repo)
-                  )
-                case _ => args
-              }
-            },
-          opt[String]('g', "git-ref")
-            .text("Git reference to evaluate (default: main)")
-            .required()
-            .withFallback(() => "main")
-            .validate { gitRef =>
-              if (gitRef.isEmpty) failure("git-ref cannot be empty")
-              else success
-            }
-            .action((gitRef, args) =>
-              updateGitHubArgs(args, _.copy(gitRef = gitRef))
-            )
-        ),
-      cmd("local")
-        .text("Evaluate the documentation of a project checked out locally")
-        .action((_, a) =>
-          a.copy(sourceCodeArgs = SourceCodeArgs.FilesystemArgs(new File("")))
+      help("help").text("prints this usage text"),
+      note("Source code options"),
+      opt[String]("github")
+        .text(
+          "Evaluate the documentation of a GitHub repository"
         )
-        .children(
-          arg[File]("directory")
-            .text("Path to the local project's directory")
-            .required()
-            .validate { path =>
-              if (Try(path.exists()).getOrElse(false)) success
-              else failure(s"path $path does not exist or cannot be accessed")
-            }
-            .action((path, args) =>
-              args.copy(sourceCodeArgs = SourceCodeArgs.FilesystemArgs(path))
+        .valueName("<owner/repo>")
+        .validate {
+          case GitHubRepoRegex(owner, repo) =>
+            success
+          case str =>
+            failure(
+              "Please provide github repository to in the form owner/repository"
             )
+        }
+        .action { case (str, args) =>
+          str match {
+            case GitHubRepoRegex(owner, repo) =>
+              args.copy(sourceCodeArgs = GitHubArgs(owner, repo, "main"))
+            case _ => args
+          }
+        },
+      opt[String]("git-ref")
+        .text("Git reference to evaluate for GitHub repository (default: main)")
+        .optional()
+        .validate { gitRef =>
+          if (gitRef.isEmpty) failure("git-ref cannot be empty")
+          else success
+        }
+        .action((gitRef, args) =>
+          updateGitHubArgs(args, _.copy(gitRef = gitRef))
         ),
-      note("AWS Bedrock LLM options"),
-      opt[String]('p', "profile")
-        .text("AWS profile name")
-        .required()
+      opt[File]("local")
+        .text("Evaluate the documentation of a local codebase")
+        .valueName("<directory>")
+        .validate { path =>
+          if (Try(path.exists()).getOrElse(false)) success
+          else failure(s"path $path does not exist or cannot be accessed")
+        }
+        .action((path, args) =>
+          args.copy(sourceCodeArgs = SourceCodeArgs.FilesystemArgs(path))
+        ),
+      note("LLM options"),
+      opt[String]("bedrock")
+        .text(
+          "Use AWS Bedrock, authenticated with the specified AWS profile name"
+        )
+        .valueName("<profile>")
         .validate { profile =>
-          if (profile.isEmpty) failure("profile cannot be empty")
+          if (profile.isEmpty) failure("Bedrock profile name cannot be empty")
           else success
         }
         .action((profile, args) =>
           updateDocsEvaluatorArgs(args, _.copy(profile = profile))
         )
         .action((profile, args) =>
-          args.copy(docsEvaluatorArgs = AwsBedrockArgs(profile, ""))
+          args.copy(docsEvaluatorArgs = AwsBedrockArgs(profile, "us-east-1"))
         ),
       opt[String]('r', "region")
-        .text("AWS region (default: us-east-1)")
-        .required()
-        .withFallback(() => "us-east-1")
+        .text("Bedrock's AWS region (default: us-east-1)")
+        .optional()
         .validate { region =>
           if (region.isEmpty) failure("region cannot be empty")
           else success
@@ -144,7 +132,25 @@ object Args {
         .action((flag, args) => args.copy(verbose = true))
         .text(
           "Verbose mode will print the LLM's reasoning as well as its answer"
-        )
+        ),
+      checkConfig {
+        case Args(
+              SourceCodeArgsNotSpecified,
+              DocsEvaluatorArgsNotSpecified,
+              _
+            ) =>
+          failure(
+            "Please specify --github <repo/owner> or --local <dir> and --bedrock <profile>"
+          )
+        case Args(SourceCodeArgsNotSpecified, _, _) =>
+          failure("Please specify --github <repo/owner> or --local <dir>")
+        case Args(_, DocsEvaluatorArgsNotSpecified, _) =>
+          failure(
+            "Please use --bedrock <profile> to provide an AWS profile"
+          )
+        case _ =>
+          success
+      }
     )
   }
 
@@ -206,11 +212,11 @@ object Args {
 }
 
 enum SourceCodeArgs {
-  case GitHubArgs(owner: String, repo: String, gitRef: String = "main")
+  case GitHubArgs(owner: String, repo: String, gitRef: String)
   case FilesystemArgs(path: File)
   case SourceCodeArgsNotSpecified
 }
 enum DocsEvaluatorArgs {
-  case AwsBedrockArgs(profile: String, region: String = "us-east-1")
+  case AwsBedrockArgs(profile: String, region: String)
   case DocsEvaluatorArgsNotSpecified
 }

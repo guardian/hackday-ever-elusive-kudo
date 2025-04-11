@@ -11,7 +11,7 @@ class ArgsTest extends FunSuite {
   test("parses example GitHub CLI args") {
     val cliArgs = Seq(
       // format: off
-      "github", "owner/repository",
+      "--github", "owner/repository",
       "-p", "profile"
       // format: on
     )
@@ -20,18 +20,39 @@ class ArgsTest extends FunSuite {
       maybeArgs,
       Some(
         Args(
-          GitHubArgs("owner", "repository"),
-          AwsBedrockArgs("profile"),
+          GitHubArgs("owner", "repository", "main"),
+          AwsBedrockArgs("profile", "us-east-1"),
           verbose = false
         )
       )
     )
   }
 
-  test("parses example local filesystem, CLI args") {
+  test("parses example GitHub repository with gitref provided") {
     val cliArgs = Seq(
       // format: off
-      "local", "src/main",
+      "--github", "owner/repository",
+      "--git-ref", "branch-name",
+      "-p", "profile"
+      // format: on
+    )
+    val (maybeArgs, _) = Args.parseArgs(cliArgs)
+    assertEquals(
+      maybeArgs,
+      Some(
+        Args(
+          GitHubArgs("owner", "repository", "branch-name"),
+          AwsBedrockArgs("profile", "us-east-1"),
+          verbose = false
+        )
+      )
+    )
+  }
+
+  test("parses example local filesystem args") {
+    val cliArgs = Seq(
+      // format: off
+      "--local", "src/main",
       "--profile", "profile-name",
       // format: on
     )
@@ -41,7 +62,28 @@ class ArgsTest extends FunSuite {
       Some(
         Args(
           FilesystemArgs(new File("src/main")),
-          AwsBedrockArgs("profile-name"),
+          AwsBedrockArgs("profile-name", "us-east-1"),
+          verbose = false
+        )
+      )
+    )
+  }
+
+  test("parses example local filesystem args with a different bedrock region") {
+    val cliArgs = Seq(
+      // format: off
+      "--local", "src/main",
+      "--profile", "profile-name",
+      "--region", "eu-west-1",
+      // format: on
+    )
+    val (maybeArgs, _) = Args.parseArgs(cliArgs)
+    assertEquals(
+      maybeArgs,
+      Some(
+        Args(
+          FilesystemArgs(new File("src/main")),
+          AwsBedrockArgs("profile-name", "eu-west-1"),
           verbose = false
         )
       )
