@@ -30,7 +30,7 @@ object Args {
 
   /** Do the parsing, and execute the resulting effects (printing errors etc)
     */
-  def parse[F[_]: Monad: Console](
+  def parse[F[_]: {Monad, Console}](
       args: Seq[String]
   ): F[Either[ExitCode, Args]] = {
     parseArgs(args) match {
@@ -102,7 +102,7 @@ object Args {
           args.copy(sourceCodeArgs = SourceCodeArgs.FilesystemArgs(path))
         ),
       note("LLM options"),
-      opt[String]("bedrock")
+      opt[String]('p', "bedrock-profile")
         .text(
           "Use AWS Bedrock, authenticated with the specified AWS profile name"
         )
@@ -140,13 +140,13 @@ object Args {
               _
             ) =>
           failure(
-            "Please specify --github <repo/owner> or --local <dir> and --bedrock <profile>"
+            "Please specify --github <repo/owner> or --local <dir> and --bedrock-profile <profile>"
           )
         case Args(SourceCodeArgsNotSpecified, _, _) =>
           failure("Please specify --github <repo/owner> or --local <dir>")
         case Args(_, DocsEvaluatorArgsNotSpecified, _) =>
           failure(
-            "Please use --bedrock <profile> to provide an AWS profile"
+            "Please use --bedrock-profile <profile> to provide an AWS profile"
           )
         case _ =>
           success
@@ -154,7 +154,7 @@ object Args {
     )
   }
 
-  private def executeOEffects[F[_]: Monad: Console](
+  private def executeOEffects[F[_]: {Monad, Console}](
       effects: List[OEffect]
   ): F[Option[ExitCode]] = {
     effects.foldM[F, Option[ExitCode]](None) { (acc, effect) =>

@@ -12,7 +12,7 @@ class ArgsTest extends FunSuite {
     val cliArgs = Seq(
       // format: off
       "--github", "owner/repository",
-      "-p", "profile"
+      "--bedrock-profile", "profile"
       // format: on
     )
     val (maybeArgs, _) = Args.parseArgs(cliArgs)
@@ -33,7 +33,7 @@ class ArgsTest extends FunSuite {
       // format: off
       "--github", "owner/repository",
       "--git-ref", "branch-name",
-      "-p", "profile"
+      "--bedrock-profile", "profile"
       // format: on
     )
     val (maybeArgs, _) = Args.parseArgs(cliArgs)
@@ -53,7 +53,7 @@ class ArgsTest extends FunSuite {
     val cliArgs = Seq(
       // format: off
       "--local", "src/main",
-      "--profile", "profile-name",
+      "--bedrock-profile", "profile-name",
       // format: on
     )
     val (maybeArgs, _) = Args.parseArgs(cliArgs)
@@ -73,7 +73,7 @@ class ArgsTest extends FunSuite {
     val cliArgs = Seq(
       // format: off
       "--local", "src/main",
-      "--profile", "profile-name",
+      "-p", "profile-name",
       "--region", "eu-west-1",
       // format: on
     )

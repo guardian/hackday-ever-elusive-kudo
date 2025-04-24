@@ -19,7 +19,7 @@ import software.amazon.awssdk.services.bedrockruntime.model.*
 
 import scala.jdk.CollectionConverters.*
 
-class AwsBedrockDocsEvaluator[F[_]: Sync: MonadThrow: LoggerFactory](
+class AwsBedrockDocsEvaluator[F[_]: {Sync, MonadThrow, LoggerFactory}](
     bedrockRuntimeClient: BedrockRuntimeClient
 ) extends DocsEvaluator[F] {
   private val logger = LoggerFactory.getLogger[F]
@@ -68,7 +68,7 @@ object AwsBedrockDocsEvaluator {
 //  val modelId = "us.anthropic.claude-3-5-sonnet-20241022-v2:0"
   val modelId = "us.anthropic.claude-3-5-haiku-20241022-v1:0"
 
-  def create[F[_]: Sync: LoggerFactory](
+  def create[F[_]: {Sync, LoggerFactory}](
       profileName: String,
       region: Region
   ): Resource[F, AwsBedrockDocsEvaluator[F]] = {

@@ -1,21 +1,22 @@
 ThisBuild / organization := "com.adamnfish"
-ThisBuild / scalaVersion := "3.4.3"
+ThisBuild / scalaVersion := "3.6.4"
 scalacOptions ++= Seq(
+  // format: off
   "-deprecation",
-  "-encoding",
-  "utf-8",
-  // "-explaintypes",
-//  "-explain",
+  "-encoding", "utf-8",
   "-feature",
   "-unchecked",
-  "-Xfatal-warnings"
+  "-Xfatal-warnings",
+  "-source", "3.7"
+  // format: on
 )
 
-val catsEffectVersion = "3.5.7"
+val catsEffectVersion = "3.6.1"
 val http4sVersion = "0.23.30"
-val fs2Version = "3.11.0"
+val fs2Version = "3.12.0"
 
 lazy val root = (project in file("."))
+  .enablePlugins(JavaAppPackaging)
   .settings(
     name := "eek",
     libraryDependencies ++= Seq(
@@ -29,14 +30,13 @@ lazy val root = (project in file("."))
       "com.47deg" %% "github4s" % "0.33.3",
       "com.github.scopt" %% "scopt" % "4.1.0",
       "com.lihaoyi" %% "fastparse" % "3.1.1",
-      "software.amazon.awssdk" % "bedrockruntime" % "2.29.22",
-      "com.github.alexarchambault" %% "case-app-cats" % "2.1.0-M29",
-      "ch.qos.logback" % "logback-classic" % "1.5.12",
+      "software.amazon.awssdk" % "bedrockruntime" % "2.31.28",
+      "ch.qos.logback" % "logback-classic" % "1.5.18",
       "org.typelevel" %% "log4cats-slf4j" % "2.7.0",
-      "org.slf4j" % "slf4j-api" % "2.0.16",
-      "org.scalameta" %% "munit" % "1.0.2" % Test,
-      "org.typelevel" %% "munit-cats-effect" % "2.0.0" % Test,
-      "org.scalameta" %% "munit-scalacheck" % "1.0.0" % Test,
+      "org.slf4j" % "slf4j-api" % "2.0.17",
+      "org.scalameta" %% "munit" % "1.1.0" % Test,
+      "org.typelevel" %% "munit-cats-effect" % "2.1.0" % Test,
+      "org.scalameta" %% "munit-scalacheck" % "1.1.0" % Test,
       "org.scalatest" %% "scalatest" % "3.2.19" % Test
     ),
     Compile / run / fork := true

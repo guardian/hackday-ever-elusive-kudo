@@ -15,6 +15,9 @@ import scala.Console.*
 import scala.util.control.NonFatal
 
 object Main extends IOApp {
+
+  /** CLI entrypoint
+    */
   override def run(args: List[String]): IO[ExitCode] =
     Args
       .parse[IO](args)
