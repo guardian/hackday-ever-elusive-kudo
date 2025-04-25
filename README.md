@@ -3,6 +3,8 @@ Ever-elusive kudo
 
 This is a tool for evaluating developer documentation. Our goal is to help teams decide whether their developer documentation will be useful for colleagues around the department.
 
+![Screenshot of program output](docs/output-screenshot.png)
+
 ## Running
 
 ### Locally
@@ -12,18 +14,18 @@ This tool can be run locally using `sbt`.
 Looking up documentation from GitHub requires a GitHub API token (with the read content scope), which should be provided as an environment variable. AWS Bedrock is authenticated using AWS credentials in a named profile.
 
     $ GITHUB_API_KEY=??? sbt
-    > run --github guardian/hackday-ever-elusive-kudo --bedrock aws-profile --region eu-west-1
+    > run --github guardian/hackday-ever-elusive-kudo --bedrock-profile aws-profile --region eu-west-1
 
-The program takes a few parameters, some of which have default values:
+The program takes a few parameters, some of which have default values. You must provide one of either `--github` or `--local` to specify the codebase for evaluation.
 
-| Argument                    | Description                                                                                                       |
-|-----------------------------|-------------------------------------------------------------------------------------------------------------------|
-| --github &lt;owner/repo&gt; | Use a GitHub repository as the source code provider: `owner/repository` e.g. `guardian/hackday-ever-elusive-kudo` |
-| --git-ref &lt;value&gt;     | **Optional**: A reference to the version of the repository to check (default: `main`)                             |
-| --local &lt;directory&gt;   | Select a directory where the project lives e.g. `/Users/user/code/hackday-ever-elusive-kudo`                      |
-| --bedrock &lt;profile&gt;   | The AWS profile name that contains valid credentials for calling AWS Bedrock                                      |
-| --region &lt;region&gt;     | **Optional**: The AWS region that should be used to call the AWS Bedrock API (default: `us-east-1`)               |
-| --verbose / -v              | Prints the LLM's reasoning in addition to its evaluation, to explain its thinking                                 |
+| Argument                               | Description                                                                                                       |
+|----------------------------------------|-------------------------------------------------------------------------------------------------------------------|
+| --github &lt;owner/repo&gt;            | Use a GitHub repository as the source code provider: `owner/repository` e.g. `guardian/hackday-ever-elusive-kudo` |
+| [ --git-ref &lt;value&gt; ]            | **Optional**: A reference to the version of the GitHub repository to check (default: `main`)                      |
+| --local &lt;directory&gt;              | Select a local directory as the source code provider e.g. `/Users/user/code/hackday-ever-elusive-kudo`            |
+| --bedrock-profile / -p &lt;profile&gt; | The AWS profile name that contains valid credentials for calling AWS Bedrock                                      |
+| --region &lt;region&gt;                | **Optional**: The AWS region that should be used to call the AWS Bedrock API (default: `us-east-1`)               |
+| --verbose / -v                         | Prints the LLM's reasoning in addition to its evaluation, to explain its thinking                                 |
 
 ### Production
 
@@ -50,33 +52,45 @@ There is a [SourceCode](src/main/scala/com/adamnfish/eek/sourcecode/SourceCode.s
 - [`Github`](src/main/scala/com/adamnfish/eek/sourcecode/Github.scala), which is used to fetch documentation files from a GitHub repository.
 - [`Filesystem`](src/main/scala/com/adamnfish/eek/sourcecode/Filesystem.scala), which gets documentation files from a local directory.
 
-The second service is a [DocsEvaluator](src/main/scala/com/adamnfish/eek/docs/DocsEvaluator.scala), which checks the documentation produced in the previous step. This service is implemented by [`AwsBedrockDocsEvaluator`](src/main/scala/com/adamnfish/eek/docs/AwsBedrockDocsEvaluator.scala), which uses the an LLM provided by AWS Bedrock to evaluate the repository's documentation.
+The second service is a [DocsEvaluator](src/main/scala/com/adamnfish/eek/docs/DocsEvaluator.scala), which checks the documentation produced in the previous step. This service is implemented by [`AwsBedrockDocsEvaluator`](src/main/scala/com/adamnfish/eek/docs/AwsBedrockDocsEvaluator.scala), which uses an LLM provided by AWS Bedrock to evaluate the repository's documentation.
+
+Here's an overview of the program:
+
+```mermaid
+flowchart LR
+    Start[Parse CLI arguments] --> ExtractDocs
+    subgraph sourceCodeRetrieval["Source code retrieval"]
+        ExtractDocs[Extract documentation]
+    end
+    subgraph docsEvaluation["Documentation evaluation"]
+        ExtractDocs --> EvaluateDocs[Evaluate documentation]
+    end
+    EvaluateDocs --> PrintResults[Print evaluation to console]
+```
+
+ and this expands on the highlighted boxes above:
 
 ```mermaid
 flowchart TD
-    Start[Parse CLI arguments] --> SourceTypeDecision{Source type?}
-
-    subgraph sourceCodeRetrieval["Source code retrieval"]
-    %% GitHub
-        SourceTypeDecision -->|GitHub| A1["Call GitHub API to get repository tree"]
-        A1 --> B1["Filter for documentation files"]
-        B1 --> C1["Fetch each file's content"]
-
-    %% Local filesystem
-        SourceTypeDecision -->|Local filesystem| A2["Scan local directory"]
-        A2 --> B2["Filter for documentation files"]
-    end
-
-    C1 --> D
-    B2 --> D
-
     subgraph docsEvaluation["Documentation evaluation"]
         D["Assemble LLM prompt"]
         D --> E["Submit prompt to AWS Bedrock LLM"]
-        E --> F["Receive and parse evaluation response"]
+        E --> F["Receive LLM response"]
+        F --> G["Parse evaluation response"]
     end
 
-    F --> G["Print evaluation to console"]
+    subgraph sourceCodeRetrieval["Source code retrieval"]
+        ExtractDecision{Source type?}
+
+        %% GitHub
+        ExtractDecision -->|GitHub| A1["Call GitHub API to get repository tree"]
+        A1 --> B1["Filter for documentation files"]
+        B1 --> C1["Fetch each file's content"]
+
+        %% Local filesystem
+        ExtractDecision -->|Local filesystem| A2["Scan local directory"]
+        A2 --> B2["Filter for documentation files"]
+    end
 ```
 
 ## Technical details
@@ -100,7 +114,7 @@ There is an additional integration test for end-to-end testing the AWS Bedrock d
 
 ### Performance
 
-The tool makes calls to GitHub and then passes the results to AWS Bedrock for evaluation. LLMs are very slow to respond, so this program will take multiple seconds to complete.
+The tool makes calls to GitHub and then passes the results to AWS Bedrock for evaluation. LLMs are very slow to respond, so this program will take tens of seconds to complete.
 
 There are two sequential GitHub API calls, the first to fetch the tree and then another set in parallel to look up the documentation file contents.
 

@@ -16,7 +16,7 @@ import org.typelevel.log4cats.*
 
 import java.util.Base64
 
-class Github[F[_]: Concurrent: Async: Network: MonadThrow: LoggerFactory](
+class Github[F[_]: {Concurrent, Async, Network, MonadThrow, LoggerFactory}](
     githubAPIs: GithubAPIs[F],
     owner: String,
     repositoryName: String,
@@ -91,7 +91,7 @@ class Github[F[_]: Concurrent: Async: Network: MonadThrow: LoggerFactory](
     headers.map { case (k, v) => s"$k $v" }.mkString(";")
 }
 object Github {
-  def create[F[_]: Concurrent: Async: Network: MonadThrow: LoggerFactory: Env](
+  def create[F[_]: {Concurrent, Async, Network, MonadThrow, LoggerFactory, Env}](
       owner: String,
       repositoryName: String,
       gitRef: String
@@ -137,7 +137,7 @@ object Github {
   }
 
   // helper to load an ENV var or fail with a message
-  def requiredEnvVar[F[_]: MonadThrow: Env](name: String): F[String] = {
+  def requiredEnvVar[F[_]: {MonadThrow, Env}](name: String): F[String] = {
     for {
       envOpt <- Env[F].get(name)
       env <- MonadThrow[F].fromOption(

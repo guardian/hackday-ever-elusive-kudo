@@ -11,7 +11,7 @@ import fs2.io.file.{Files, Path}
 import org.typelevel.log4cats.LoggerFactory
 import org.typelevel.log4cats.Logger
 
-class Filesystem[F[_]: MonadThrow: Concurrent: Files: Console](sourceCodeRoot: String)
+class Filesystem[F[_]: {MonadThrow, Concurrent, Files, Console}](sourceCodeRoot: String)
     extends SourceCode[F] {
 
   /** Loads VCS information from the source code at the provided filesystem
@@ -31,7 +31,7 @@ class Filesystem[F[_]: MonadThrow: Concurrent: Files: Console](sourceCodeRoot: S
   override def summary: String = sourceCodeRoot
 }
 object Filesystem {
-  def docsForPath[F[_]: Concurrent: MonadThrow: Files](
+  def docsForPath[F[_]: {Concurrent, MonadThrow, Files}](
       path: Path,
       rootPath: Path
   ): F[SourceCode.DocsFile] = {
