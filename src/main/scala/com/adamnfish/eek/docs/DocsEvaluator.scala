@@ -1,11 +1,9 @@
 package com.adamnfish.eek.docs
 
 import cats.syntax.all.*
+import com.adamnfish.eek.Formatter
 import com.adamnfish.eek.docs.DocsEvaluator.DocsEvaluation
 import com.adamnfish.eek.sourcecode.SourceCode
-import scala.concurrent.duration.*
-
-import scala.Console.*
 
 trait DocsEvaluator[F[_]] {
   def evaluateDocs(
@@ -68,57 +66,66 @@ object DocsEvaluator {
   )
 
   object DocsEvaluation {
-    def formatDocsQuality(label: String, docsQuality: DocsQuality): String =
+    def formatDocsQuality(
+        label: String,
+        docsQuality: DocsQuality,
+        f: Formatter
+    ): String =
       docsQuality match
         case DocsQuality.Good =>
           s"🟢 $label"
         case DocsQuality.MayNeedImprovement(summary) =>
-          s"🟡 $label - ${CYAN}$summary${RESET}"
+          s"🟡 $label - ${f.informative(summary)}"
         case DocsQuality.Missing =>
-          s"🔴 $label - ${CYAN}Not found${RESET}"
+          s"🔴 $label - ${f.informative("Not found")}"
 
     def formatDocsEvaluation(
         summary: String,
-        docsEvaluation: DocsEvaluator.DocsEvaluation
+        docsEvaluation: DocsEvaluator.DocsEvaluation,
+        f: Formatter
     ): String =
       // format: off
-      s"""Documentation summary for ${BOLD}$summary${RESET}
-         |🔑 ${BOLD}Key information${RESET}:
-         |    ${formatDocsQuality("Description", docsEvaluation.basics.description)}
-         |    ${formatDocsQuality("Running locally", docsEvaluation.basics.howToRunLocally)}
-         |    ${formatDocsQuality("Running in PROD", docsEvaluation.basics.howToRunInProd)}
-         |    ${formatDocsQuality("Deploying", docsEvaluation.basics.howToDeploy)}
-         |    ${formatDocsQuality("Testing", docsEvaluation.basics.howToTest)}
-         |💻 ${BOLD}Software development support${RESET}:
-         |    ${formatDocsQuality("Contributing", docsEvaluation.contributing.howToContribute)}
-         |    ${formatDocsQuality("Reporting issues", docsEvaluation.contributing.howToReportIssues)}
-         |    ${formatDocsQuality("Getting help", docsEvaluation.contributing.howToGetHelp)}
-         |🌏 ${BOLD}High-level overview${RESET}:
-         |    ${formatDocsQuality("Architecture", docsEvaluation.architecture.architectureOverview)}
-         |    ${formatDocsQuality("Data flow overview", docsEvaluation.architecture.dataFlowOverview)}
-         |🔧 ${BOLD}Detailed technical information${RESET}:
-         |    ${formatDocsQuality("Code", docsEvaluation.technicalDetailEvaluation.understandingCode)}
-         |    ${formatDocsQuality("Dependencies", docsEvaluation.technicalDetailEvaluation.understandingDependencies)}
-         |    ${formatDocsQuality("Tests", docsEvaluation.technicalDetailEvaluation.understandingTests)}
-         |    ${formatDocsQuality("Performance", docsEvaluation.technicalDetailEvaluation.understandingPerformance)}
-         |    ${formatDocsQuality("Security", docsEvaluation.technicalDetailEvaluation.understandingSecurity)}
-         |    ${formatDocsQuality("Monitoring", docsEvaluation.technicalDetailEvaluation.understandingMonitoring)}
-         |    ${formatDocsQuality("Logging", docsEvaluation.technicalDetailEvaluation.understandingLogging)}
-         |🪣 ${BOLD}Detailed data information${RESET}:
-         |    ${formatDocsQuality("Data storage", docsEvaluation.dataGovernanceEvaluation.understandingDataStorage)}
-         |    ${formatDocsQuality("Data processing", docsEvaluation.dataGovernanceEvaluation.understandingDataProcessing)}
-         |    ${formatDocsQuality("Data transfer", docsEvaluation.dataGovernanceEvaluation.understandingDataTransfer)}
-         |    ${formatDocsQuality("Data access", docsEvaluation.dataGovernanceEvaluation.understandingDataAccess)}
-         |    ${formatDocsQuality("Data retention", docsEvaluation.dataGovernanceEvaluation.understandingDataRetention)}
-         |    ${formatDocsQuality("Data deletion", docsEvaluation.dataGovernanceEvaluation.understandingDataDeletion)}
-         |    ${formatDocsQuality("Data backup", docsEvaluation.dataGovernanceEvaluation.understandingDataBackup)}
+      s"""Documentation summary for ${f.emphasised(summary)}
+         |🔑 ${f.emphasised("Key information")}:
+         |${f.indent}${formatDocsQuality("Description", docsEvaluation.basics.description, f)}
+         |${f.indent}${formatDocsQuality("Running locally", docsEvaluation.basics.howToRunLocally, f)}
+         |${f.indent}${formatDocsQuality("Running in PROD", docsEvaluation.basics.howToRunInProd, f)}
+         |${f.indent}${formatDocsQuality("Deploying", docsEvaluation.basics.howToDeploy, f)}
+         |${f.indent}${formatDocsQuality("Testing", docsEvaluation.basics.howToTest, f)}
+         |💻 ${f.emphasised("Software development support")}:
+         |${f.indent}${formatDocsQuality("Contributing", docsEvaluation.contributing.howToContribute, f)}
+         |${f.indent}${formatDocsQuality("Reporting issues", docsEvaluation.contributing.howToReportIssues, f)}
+         |${f.indent}${formatDocsQuality("Getting help", docsEvaluation.contributing.howToGetHelp, f)}
+         |🌏 ${f.emphasised("High-level overview")}:
+         |${f.indent}${formatDocsQuality("Architecture", docsEvaluation.architecture.architectureOverview, f)}
+         |${f.indent}${formatDocsQuality("Data flow overview", docsEvaluation.architecture.dataFlowOverview, f)}
+         |🔧 ${f.emphasised("Detailed technical information")}:
+         |${f.indent}${formatDocsQuality("Code", docsEvaluation.technicalDetailEvaluation.understandingCode, f)}
+         |${f.indent}${formatDocsQuality("Dependencies", docsEvaluation.technicalDetailEvaluation.understandingDependencies, f)}
+         |${f.indent}${formatDocsQuality("Tests", docsEvaluation.technicalDetailEvaluation.understandingTests, f)}
+         |${f.indent}${formatDocsQuality("Performance", docsEvaluation.technicalDetailEvaluation.understandingPerformance, f)}
+         |${f.indent}${formatDocsQuality("Security", docsEvaluation.technicalDetailEvaluation.understandingSecurity, f)}
+         |${f.indent}${formatDocsQuality("Monitoring", docsEvaluation.technicalDetailEvaluation.understandingMonitoring, f)}
+         |${f.indent}${formatDocsQuality("Logging", docsEvaluation.technicalDetailEvaluation.understandingLogging, f)}
+         |🪣 ${f.emphasised("Detailed data information")}:
+         |${f.indent}${formatDocsQuality("Data storage", docsEvaluation.dataGovernanceEvaluation.understandingDataStorage, f)}
+         |${f.indent}${formatDocsQuality("Data processing", docsEvaluation.dataGovernanceEvaluation.understandingDataProcessing, f)}
+         |${f.indent}${formatDocsQuality("Data transfer", docsEvaluation.dataGovernanceEvaluation.understandingDataTransfer, f)}
+         |${f.indent}${formatDocsQuality("Data access", docsEvaluation.dataGovernanceEvaluation.understandingDataAccess, f)}
+         |${f.indent}${formatDocsQuality("Data retention", docsEvaluation.dataGovernanceEvaluation.understandingDataRetention, f)}
+         |${f.indent}${formatDocsQuality("Data deletion", docsEvaluation.dataGovernanceEvaluation.understandingDataDeletion, f)}
+         |${f.indent}${formatDocsQuality("Data backup", docsEvaluation.dataGovernanceEvaluation.understandingDataBackup, f)}
          |""".stripMargin
     // format: on
 
-    def formatThoughts(thoughts: String): String =
-      s"""${BOLD}Evaluation reasoning${RESET} ${CYAN}(included because the `verbose` flag has been set)${RESET}
+    def formatThoughts(thoughts: String, f: Formatter): String = {
+      // format: off
+      s"""${f.emphasised("Evaluation reasoning")} ${f.informative("(included because the `verbose` flag has been set)")}
          |$thoughts
-         |${BOLD}End of evaluation reasoning${RESET}""".stripMargin
+         |${f.emphasised("End of evaluation reasoning")}
+         |""".stripMargin
+      // format: on
+    }
 
     def empty: DocsEvaluation =
       DocsEvaluation(

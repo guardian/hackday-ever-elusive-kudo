@@ -101,7 +101,6 @@ object AwsBedrockDocsEvaluator {
   }
 
   def createMessage(allDocs: List[DocsFile]): Message = {
-    // TODO: build our prompt, including the provided docs files
     Message.builder
       .content(
         ContentBlock.fromText(
@@ -276,7 +275,6 @@ object AwsBedrockDocsEvaluator {
   }
 
   object Parser {
-
     import fastparse.*
     import NoWhitespace.*
 

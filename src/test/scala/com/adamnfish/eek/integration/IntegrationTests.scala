@@ -4,14 +4,12 @@ import cats.syntax.all.*
 import cats.effect.{IO, Ref}
 import cats.effect.kernel.Sync
 import cats.{Applicative, Functor, Show}
-import com.adamnfish.eek.Main
+import com.adamnfish.eek.{Args, ConsoleFormatter, Formatter, Main, Printer}
 import com.adamnfish.eek.Main.{AppComponents, AppFlags}
-import com.adamnfish.eek.Printer
 import com.adamnfish.eek.sourcecode.SourceCode
 import com.adamnfish.eek.sourcecode.SourceCode.DocsFile
 import com.adamnfish.eek.docs.DocsEvaluator
 import com.adamnfish.eek.docs.DocsEvaluator.DocsEvaluation
-import com.adamnfish.eek.Args
 import com.adamnfish.eek.SourceCodeArgs.*
 import com.adamnfish.eek.DocsEvaluatorArgs.*
 
@@ -47,8 +45,8 @@ class IntegrationTests extends CatsEffectSuite {
       printed <- printer.getPrinted
       expected =
         // format: off
-        s"""Evaluating the following docs files: ${CYAN}README.md${RESET}
-           |${DocsEvaluation.formatDocsEvaluation("test VCS info", evaluation)}""".stripMargin
+        s"""Evaluated docs files: ${CYAN}README.md${RESET}
+           |${DocsEvaluation.formatDocsEvaluation("test VCS info", evaluation, printer.formatter)}""".stripMargin
         // format: on
     } yield assertEquals(printed.trim, expected.trim)
   }
@@ -91,6 +89,8 @@ class IntegrationTests extends CatsEffectSuite {
         s"$prev${S.show(a)}\n"
       }
     def getPrinted: F[String] = printed.get
+    override def formatter: Formatter = ConsoleFormatter
+
   object TestPrinter:
     def make[F[_]: Sync: Functor]: F[TestPrinter[F]] =
       Ref.of[F, String]("").map(new TestPrinter[F](_))

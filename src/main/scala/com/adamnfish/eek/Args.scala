@@ -7,20 +7,24 @@ import cats.effect.{ExitCode, IO}
 import cats.effect.std.Console
 import com.adamnfish.eek.DocsEvaluatorArgs.*
 import com.adamnfish.eek.SourceCodeArgs.*
+import com.adamnfish.eek.OutputArgs.*
 import scopt.{OEffect, OParser}
 
 import java.io.File
+import java.nio.file.Path
 import scala.util.Try
 
 case class Args(
     sourceCodeArgs: SourceCodeArgs,
     docsEvaluatorArgs: DocsEvaluatorArgs,
+    outputArgs: OutputArgs,
     verbose: Boolean
 )
 object Args {
   def empty: Args = Args(
     SourceCodeArgsNotSpecified,
     DocsEvaluatorArgsNotSpecified,
+    ConsoleOutputArgs,
     verbose = false
   )
 
@@ -127,6 +131,14 @@ object Args {
         .action((region, args) =>
           updateDocsEvaluatorArgs(args, _.copy(region = region))
         ),
+      note("output options"),
+      opt[File]('o', "output-file")
+        .text("Optionally write output as markdown into the specified file")
+        .optional()
+        .valueName("<filename>")
+        .action((file, args) =>
+          args.copy(outputArgs = MarkdownFileOutputArgs(file))
+        ),
       note("Standard options"),
       opt[Unit]('v', "verbose")
         .action((flag, args) => args.copy(verbose = true))
@@ -137,14 +149,15 @@ object Args {
         case Args(
               SourceCodeArgsNotSpecified,
               DocsEvaluatorArgsNotSpecified,
+              _,
               _
             ) =>
           failure(
             "Please specify --github <repo/owner> or --local <dir> and --bedrock-profile <profile>"
           )
-        case Args(SourceCodeArgsNotSpecified, _, _) =>
+        case Args(SourceCodeArgsNotSpecified, _, _, _) =>
           failure("Please specify --github <repo/owner> or --local <dir>")
-        case Args(_, DocsEvaluatorArgsNotSpecified, _) =>
+        case Args(_, DocsEvaluatorArgsNotSpecified, _, _) =>
           failure(
             "Please use --bedrock-profile <profile> to provide an AWS profile"
           )
@@ -219,4 +232,8 @@ enum SourceCodeArgs {
 enum DocsEvaluatorArgs {
   case AwsBedrockArgs(profile: String, region: String)
   case DocsEvaluatorArgsNotSpecified
+}
+enum OutputArgs {
+  case ConsoleOutputArgs
+  case MarkdownFileOutputArgs(file: File)
 }

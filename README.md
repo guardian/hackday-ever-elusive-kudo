@@ -14,7 +14,7 @@ This tool can be run locally using `sbt`.
 Looking up documentation from GitHub requires a GitHub API token (with the read content scope), which should be provided as an environment variable. AWS Bedrock is authenticated using AWS credentials in a named profile.
 
     $ GITHUB_API_KEY=??? sbt
-    > run --github guardian/hackday-ever-elusive-kudo --bedrock-profile aws-profile --region eu-west-1
+    > run --github guardian/hackday-ever-elusive-kudo --bedrock-profile aws-profile --region us-east-1
 
 The program takes a few parameters, some of which have default values. You must provide one of either `--github` or `--local` to specify the codebase for evaluation.
 
@@ -25,6 +25,7 @@ The program takes a few parameters, some of which have default values. You must 
 | --local &lt;directory&gt;              | Select a local directory as the source code provider e.g. `/Users/user/code/hackday-ever-elusive-kudo`            |
 | --bedrock-profile / -p &lt;profile&gt; | The AWS profile name that contains valid credentials for calling AWS Bedrock                                      |
 | --region &lt;region&gt;                | **Optional**: The AWS region that should be used to call the AWS Bedrock API (default: `us-east-1`)               |
+| --output-file / -o &lt;file&gt;        | **Optional**: Write the evaluation to the specified file in markdown format e.g. `output.md`                      |
 | --verbose / -v                         | Prints the LLM's reasoning in addition to its evaluation, to explain its thinking                                 |
 
 ### Production
@@ -65,13 +66,21 @@ flowchart LR
     subgraph docsEvaluation["Documentation evaluation"]
         ExtractDocs --> EvaluateDocs[Evaluate documentation]
     end
-    EvaluateDocs --> PrintResults[Print evaluation to console]
+    subgraph output["Output"]
+        EvaluateDocs --> PrintResults[Print evaluation to console]
+    end
 ```
 
  and this expands on the highlighted boxes above:
 
 ```mermaid
 flowchart TD
+    subgraph output["Output"]
+        OutputDecision{Output location?}
+        OutputDecision -->|Console| A1["Print evaluation to console"]
+        OutputDecision -->|Output file| A12["Write output to a Markdown file"]
+    end
+
     subgraph docsEvaluation["Documentation evaluation"]
         D["Assemble LLM prompt"]
         D --> E["Submit prompt to AWS Bedrock LLM"]
@@ -83,13 +92,13 @@ flowchart TD
         ExtractDecision{Source type?}
 
         %% GitHub
-        ExtractDecision -->|GitHub| A1["Call GitHub API to get repository tree"]
-        A1 --> B1["Filter for documentation files"]
-        B1 --> C1["Fetch each file's content"]
+        ExtractDecision -->|GitHub| H1["Call GitHub API to get repository tree"]
+        H1 --> I1["Filter for documentation files"]
+        I1 --> J1["Fetch each file's content"]
 
         %% Local filesystem
-        ExtractDecision -->|Local filesystem| A2["Scan local directory"]
-        A2 --> B2["Filter for documentation files"]
+        ExtractDecision -->|Local filesystem| H2["Scan local directory"]
+        H2 --> I2["Filter for documentation files"]
     end
 ```
 
@@ -110,7 +119,9 @@ The program can also be run locally to do an end-to-end check that it is working
 
 ### Integration tests
 
-There is an additional integration test for end-to-end testing the AWS Bedrock documentation evaluation, [BuildDocsEvaluator](src/test/scala/com/adamnfish/eek/integration/BuildDocsEvaluator.scala). This requires a valid AWS profile and actually hits the Bedrock API. This is useful for iterating on the LLM prompt, to get the best possible results out of the evaluation. 
+The integration tests use test versions of the application's components, and are automatically run with the other tests. 
+
+There is an additional integration test for end-to-end testing the AWS Bedrock documentation evaluation, [BuildDocsEvaluator](src/test/scala/com/adamnfish/eek/integration/BuildDocsEvaluator.scala). This requires a valid AWS profile and actually hits the Bedrock API. It is useful for iterating on the LLM prompt, to get the best possible results out of the evaluation. To run this test remove `.ignore` from the test description string.
 
 ### Performance
 
@@ -122,7 +133,7 @@ We then pass this data to AWS Bedrock.
 
 ### Security
 
-Keys required to authenticate this application are kept out of the repository and away from the terminal during invocation. The GitHub API key is provided via an environment variable, and the AWS credentials are provided using a named profile.
+Keys required to authenticate this application are kept out of the repository and away from the terminal during invocation. The GitHub API key (if used) is provided via an environment variable, and the AWS credentials are provided using a named profile.
 
 The provided GitHub Access token determines what GitHub data is accessible to the tool and the AWS profile that's used determines whether the program can call AWS Bedrock.
 

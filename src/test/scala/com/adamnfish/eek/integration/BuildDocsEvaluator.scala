@@ -1,6 +1,7 @@
 package com.adamnfish.eek.integration
 
 import cats.effect.{IO, Resource}
+import com.adamnfish.eek.ConsoleFormatter
 import com.adamnfish.eek.docs.AwsBedrockDocsEvaluator
 import com.adamnfish.eek.docs.DocsEvaluator.DocsEvaluation
 import com.adamnfish.eek.docs.DocsEvaluator.DocsEvaluation.formatDocsEvaluation
@@ -30,10 +31,10 @@ class BuildDocsEvaluator extends CatsEffectSuite {
         readmeDoc = DocsFile("readme.md", readmeContents)
         (docsEvaluation, thoughts) <- evaluator.evaluateDocs(List(readmeDoc))
         _ <- IO.println(
-          DocsEvaluation.formatThoughts(thoughts)
+          DocsEvaluation.formatThoughts(thoughts, ConsoleFormatter)
         )
         _ <- IO.println(
-          formatDocsEvaluation("owner/repo", docsEvaluation)
+          formatDocsEvaluation("owner/repo", docsEvaluation, ConsoleFormatter)
         )
       } yield ()
     }

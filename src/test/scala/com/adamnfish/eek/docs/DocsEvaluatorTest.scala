@@ -1,5 +1,6 @@
 package com.adamnfish.eek.docs
 
+import com.adamnfish.eek.ConsoleFormatter
 import munit.ScalaCheckSuite
 import org.scalacheck.Gen
 import org.scalacheck.Prop.*
@@ -17,19 +18,29 @@ import com.adamnfish.eek.docs.DocsEvaluator.DocsQuality.{
 import scala.Console.{CYAN, RESET}
 
 class DocsEvaluatorTest extends ScalaCheckSuite {
+  val formatter = ConsoleFormatter
+
   test("example 'good' result is correct") {
     val label = "label"
     val expected = s"🟢 $label"
-    assert(clue(formatDocsQuality(label, DocsQuality.Good)) == expected)
+    assert(
+      clue(formatDocsQuality(label, DocsQuality.Good, formatter)) == expected
+    )
   }
 
   test("formatDocsQuality starts with 🟢 for 'good' results") {
-    assert(clue(formatDocsQuality("label", DocsQuality.Good)).startsWith("🟢"))
+    assert(
+      clue(formatDocsQuality("label", DocsQuality.Good, formatter))
+        .startsWith("🟢")
+    )
   }
 
   test("formatDocsQuality contains the label for 'good' results") {
     forAll { (label: String) =>
-      assert(clue(formatDocsQuality(label, DocsQuality.Good)).contains(label))
+      assert(
+        clue(formatDocsQuality(label, DocsQuality.Good, formatter))
+          .contains(label)
+      )
     }
   }
 
@@ -41,7 +52,8 @@ class DocsEvaluatorTest extends ScalaCheckSuite {
       clue(
         formatDocsQuality(
           label,
-          DocsQuality.MayNeedImprovement(summary)
+          DocsQuality.MayNeedImprovement(summary),
+          formatter
         )
       ) == expected
     )
@@ -51,7 +63,11 @@ class DocsEvaluatorTest extends ScalaCheckSuite {
     forAll { (summary: String) =>
       assert(
         clue(
-          formatDocsQuality("label", DocsQuality.MayNeedImprovement(summary))
+          formatDocsQuality(
+            "label",
+            DocsQuality.MayNeedImprovement(summary),
+            formatter
+          )
         ).startsWith("🟡")
       )
     }
@@ -63,7 +79,11 @@ class DocsEvaluatorTest extends ScalaCheckSuite {
     forAll { (label: String) =>
       assert(
         clue(
-          formatDocsQuality(label, DocsQuality.MayNeedImprovement("summary"))
+          formatDocsQuality(
+            label,
+            DocsQuality.MayNeedImprovement("summary"),
+            formatter
+          )
         ).startsWith("🟡")
       )
     }
@@ -75,7 +95,11 @@ class DocsEvaluatorTest extends ScalaCheckSuite {
     forAll { (summary: String) =>
       assert(
         clue(
-          formatDocsQuality("label", DocsQuality.MayNeedImprovement(summary))
+          formatDocsQuality(
+            "label",
+            DocsQuality.MayNeedImprovement(summary),
+            formatter
+          )
         ).contains(summary)
       )
     }
@@ -84,19 +108,23 @@ class DocsEvaluatorTest extends ScalaCheckSuite {
   test("example 'missing' result is correct") {
     val label = "label"
     val expected = s"🔴 $label - ${CYAN}Not found${RESET}"
-    assert(clue(formatDocsQuality(label, DocsQuality.Missing)) == expected)
+    assert(
+      clue(formatDocsQuality(label, DocsQuality.Missing, formatter)) == expected
+    )
   }
 
   test("formatDocsQuality starts with 🔴 for 'missing' results") {
     assert(
-      clue(formatDocsQuality("label", DocsQuality.Missing)).startsWith("🔴")
+      clue(formatDocsQuality("label", DocsQuality.Missing, formatter))
+        .startsWith("🔴")
     )
   }
 
   test("formatDocsQuality contains the label for 'missing' results") {
     forAll { (label: String) =>
       assert(
-        clue(formatDocsQuality(label, DocsQuality.Missing)).contains(label)
+        clue(formatDocsQuality(label, DocsQuality.Missing, formatter))
+          .contains(label)
       )
     }
   }
@@ -104,9 +132,10 @@ class DocsEvaluatorTest extends ScalaCheckSuite {
   property("formatDocsEvaluation contains the provided summary") {
     forAll { (owner: String, repo: String) =>
       assert(
-        formatDocsEvaluation(s"$owner/$repo", DocsEvaluation.empty).contains(
-          s"$owner/$repo"
-        )
+        formatDocsEvaluation(s"$owner/$repo", DocsEvaluation.empty, formatter)
+          .contains(
+            s"$owner/$repo"
+          )
       )
     }
   }
