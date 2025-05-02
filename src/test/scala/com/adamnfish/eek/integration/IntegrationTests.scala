@@ -20,7 +20,6 @@ class IntegrationTests extends CatsEffectSuite {
   test("Prints the evaluation returned by the DocsEvaluator") {
     // the dummy CLI arguments for our test invocation
     val flags = AppFlags(verbose = false)
-
     // mock data for our test components
     val docsFiles = List(DocsFile("README.md", "Example content"))
     val evaluation = DocsEvaluation.empty.copy()
@@ -37,10 +36,8 @@ class IntegrationTests extends CatsEffectSuite {
         printer = printer,
         flags
       )
-
       // run the app with our test components and the CLI args we set up above
       _ <- Main.app(appComponents)
-
       // the test printer captured all the "println" content, let's compare that to our expected value
       printed <- printer.getPrinted
       expected =
@@ -51,7 +48,34 @@ class IntegrationTests extends CatsEffectSuite {
     } yield assertEquals(printed.trim, expected.trim)
   }
 
-  test("Also prints the Evaluator's 'thinking' when in verbose mode".ignore) {}
+  test("Also prints the Evaluator's 'thinking' when in verbose mode") {
+    // the dummy CLI arguments for our test invocation
+    val flags = AppFlags(verbose = true)
+    // mock data for our test components
+    val docsFiles = List(DocsFile("README.md", "Example content"))
+    val evaluation = DocsEvaluation.empty.copy()
+
+    for {
+      // create test versions of our dependencies, with mocked data
+      printer <- TestPrinter.make[IO]
+      appComponents = AppComponents[IO](
+        sourceCode = new TestVcsInfo[IO]("test VCS info", docsFiles),
+        docsEvaluator = new TestDocsEvaluator[IO](
+          evaluation,
+          "The thinking behind the evaluation"
+        ),
+        printer = printer,
+        flags
+      )
+      // run the app with our test components and the CLI args we set up above
+      _ <- Main.app(appComponents)
+      // the test printer captured all the "println" content, let's compare that to our expected value
+      printed <- printer.getPrinted
+    } yield assert(
+      clue(printed).contains("The thinking behind the evaluation"),
+      "output did not contain thinking"
+    )
+  }
 
   test(
     "Provides the VCS components' documentation files to the DocsEvaluator".ignore
@@ -92,6 +116,6 @@ class IntegrationTests extends CatsEffectSuite {
     override def formatter: Formatter = ConsoleFormatter
 
   object TestPrinter:
-    def make[F[_]: Sync: Functor]: F[TestPrinter[F]] =
+    def make[F[_]: {Sync, Functor}]: F[TestPrinter[F]] =
       Ref.of[F, String]("").map(new TestPrinter[F](_))
 }
